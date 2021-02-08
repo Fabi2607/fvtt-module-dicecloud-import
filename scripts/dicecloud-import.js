@@ -227,6 +227,9 @@ class DiceCloudImporter extends Application {
             ["Paper (one sheet)", "Paper"],
             ["Ink (1 ounce bottle)", "Ink Bottle"],
             ["Rope, hempen (50 feet)", "Hempen Rope (50 ft.)"],
+            ["Oil (flask)", "Oil Flask"],
+            ["Case, map or scroll", "Map or Scroll Case"],
+            ["Perfume (vial)", "Perfume"],
         ]);
 
         const ignore_containers = ["Robe of Useful Items"];
