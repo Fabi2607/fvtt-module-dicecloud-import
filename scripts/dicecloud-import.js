@@ -322,7 +322,7 @@ class DiceCloudImporter extends Application {
                 items.push(item_entity);
             }
         }
-        actor.createEmbeddedEntity("OwnedItem", items);
+        await actor.createEmbeddedEntity("OwnedItem", items);
     }
 
     static async parseLevels(actor, parsedCharacter) {
@@ -335,7 +335,7 @@ class DiceCloudImporter extends Application {
             if (srd_item) {
                 let srd_entity = await srd_pack.getEntity(srd_item._id);
 
-                let entity = actor.createEmbeddedEntity("OwnedItem", srd_entity);
+                let entity = await actor.createEmbeddedEntity("OwnedItem", srd_entity);
                 entity.update({
                     data: {
                         levels: c_class.level,
@@ -343,10 +343,13 @@ class DiceCloudImporter extends Application {
                 });
             } else {
                 let item_data = {
-                    name: "Druid",
+                    data: {
+                        levels: c_class.level,
+                    },
+                    name: c_class.name,
                     type: "class",
                 }
-                actor.createEmbeddedEntity("OwnedItem", item_data);
+                await actor.createEmbeddedEntity("OwnedItem", item_data);
             }
         }
     }
