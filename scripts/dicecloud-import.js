@@ -200,7 +200,7 @@ class DiceCloudImporter extends Application {
         // WIP: Loop over the critterDB stats.additionalAbilities, actions, reactions, and legendaryActions
         // to generate Foundry "items" for attacks/spells/etc
 
-        console.log(thisActor);
+        console.log(tempActor);
 
         // Check if this actor already exists and handle update/replacement
         let existingActor = null;
@@ -208,8 +208,6 @@ class DiceCloudImporter extends Application {
         if (existingActor == null) {
             let thisActor = await Actor.create(tempActor, {'temporary': false, 'displaySheet': false});
 
-            // Import the actor into the pack
-            await pack.importEntity(thisActor);
             // Wrap up
             console.log(`Done importing ${c.name} into ${pack.collection}`);
             ui.notifications.info(`Done importing ${c.name} into ${pack.collection}`);
