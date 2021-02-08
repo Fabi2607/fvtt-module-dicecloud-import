@@ -43,7 +43,7 @@ class DiceCloudImporter extends Application {
         } else if (effect.calculation != null) {
             value = calculateValue(effect.calculation);
         } else {
-            throw new Error(`could not determine effect value for ${effect}`);
+            throw new Error(`could not determine effect value for ${JSON.stringify(effect)}`);
         }
 
         switch (effect.operation) {
@@ -67,7 +67,7 @@ class DiceCloudImporter extends Application {
         }
     }
 
-    static parseAbilities(effects_by_stat) {
+    static parseAbilities(parsedCharacter, effects_by_stat) {
         const translations = new Map([
             ["strength", "str"],
             ["dexterity", "dex"],
@@ -92,6 +92,19 @@ class DiceCloudImporter extends Application {
                 .filter((effect) => effect.enabled)
                 .forEach((effect) => this.applyEffectOperations(effect, changeAbility, () => {}, () => 0));
         });
+
+        const charId = parsedCharacter.character.charId;
+        parsedCharacter.collections.proficiencies
+            .filter((prof) => prof.enabled && prof.charId === charId && prof.type === "save")
+            .forEach((prof) => {
+                const stat = prof.name.replace(/Save$/, "");
+                if (translations.has(stat)) {
+                    abilities[translations.get(stat)].proficient = prof.value;
+                } else {
+                    throw new Error(`could not apply proficiency ${JSON.stringify(prof)}`)
+                }
+            });
+
         return abilities;
     }
 
@@ -372,7 +385,7 @@ class DiceCloudImporter extends Application {
                 img: "icons/svg/mystery-man.png",
             },
             data: {
-                abilities: DiceCloudImporter.parseAbilities(effects_by_stat),
+                abilities: DiceCloudImporter.parseAbilities(parsedCharacter, effects_by_stat),
                 attributes: DiceCloudImporter.parseAttributes(parsedCharacter, effects_by_stat),
                 currency: DiceCloudImporter.parseCurrency(parsedCharacter),
                 details: DiceCloudImporter.parseDetails(parsedCharacter),
