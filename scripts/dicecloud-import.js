@@ -88,7 +88,7 @@ class DiceCloudImporter extends Application {
         return abilities;
     }
 
-    static parseAttributes(parsedCharacter) {
+    static parseAttributes(parsedCharacter, effects_by_stat) {
         const spellcastingTranslations = new Map([
             ["intelligenceMod", "int"],
             ["wisdomMod", "wis"],
@@ -102,9 +102,26 @@ class DiceCloudImporter extends Application {
             throw new Error(`could not determine spellcasting ability from ${spellList.attackBonus}`)
         }
         spellcasting = spellcastingTranslations.get(spellcasting[0]);
+
+        let speed = 30;
+        function changeSpeed(changeFunc) {
+            speed = changeFunc(speed);
+        }
+        effects_by_stat.get("speed")
+            .filter((effect) => effect.enabled)
+            .forEach((effect) => applyEffectOperations(effect, changeSpeed, () => {}));
+
+        let armor = 10;
+        function changeArmor(changeFunc) {
+            armor = changeFunc(armor);
+        }
+        effects_by_stat.get("armor")
+            .filter((effect) => effect.enabled)
+            .forEach((effect) => applyEffectOperations(effect, changeArmor, () => {}));
+
         return {
             ac: {
-                value: 10,
+                value: armor,
             },
             death: {
                 success: 0,
@@ -135,7 +152,7 @@ class DiceCloudImporter extends Application {
                 hover: false,
                 swim: 0,
                 units: "ft",
-                walk: 30,
+                walk: speed,
             },
             senses: {
                 blindsight: 0,
@@ -302,7 +319,7 @@ class DiceCloudImporter extends Application {
             },
             data: {
                 abilities: DiceCloudImporter.parseAbilities(effects_by_stat),
-                attributes: DiceCloudImporter.parseAttributes(parsedCharacter),
+                attributes: DiceCloudImporter.parseAttributes(parsedCharacter, effects_by_stat),
                 currency: DiceCloudImporter.parseCurrency(parsedCharacter),
                 details: DiceCloudImporter.parseDetails(parsedCharacter),
                 traits: DiceCloudImporter.parseTraits(parsedCharacter),
