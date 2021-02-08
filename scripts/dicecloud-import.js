@@ -58,7 +58,7 @@ class DiceCloudImporter extends Application {
         }
     }
 
-    static parseAbilities(parsedCharacter) {
+    static parseAbilities(effects_by_stat) {
         const translations = new Map([
             ["strength", "str"],
             ["dexterity", "dex"],
@@ -67,53 +67,23 @@ class DiceCloudImporter extends Application {
             ["wisdom", "wis"],
             ["charisma", "cha"],
         ]);
-        const charId = parsedCharacter.character._id
-        const effects_by_stat = new Map();
-        parsedCharacter.collections.effects
-            .filter((effect) => translations.has(effect.stat))
-            .forEach((effect) => {
-                if (effects_by_stat.has(effect.stat)) {
-                    effects_by_stat.get(effect.stat).push(effect);
-                } else {
-                    effects_by_stat.set(effect.stat, [effect]);
-                }
-            });
-        const abilities = {
-            str: {
+        const abilities = {};
+        Array.from(translations.values()).forEach((shortStat) => {
+            abilities[shortStat] = {
                 proficient: 0,
                 value: 10,
-            },
-            dex: {
-                proficient: 0,
-                value: 10,
-            },
-            con: {
-                proficient: 0,
-                value: 10,
-            },
-            int: {
-                proficient: 0,
-                value: 10,
-            },
-            wis: {
-                proficient: 0,
-                value: 10,
-            },
-            cha: {
-                proficient: 0,
-                value: 10,
+            };
+        });
+        Array.from(translations.keys()).forEach((stat) => {
+            const shortStat = translations.get(stat);
+            function changeAbility(changeFunc) {
+                abilities[shortStat].value = changeFunc(abilities[shortStat].value);
             }
-        };
-        effects_by_stat.forEach((effectList, stat) => {
-            effectList.forEach((effect) => {
-                if (!effect.enabled) return;
-                if (effect.charId !== charId) return;
-                const shortStat = translations.get(stat);
-                function changeAbility(changeFunc) {
-                    abilities[shortStat].value = changeFunc(abilities[shortStat].value);
-                }
-                this.applyEffectOperations(effect.operation, changeAbility, () => {}, effect.value);
-            });
+            effects_by_stat.get(stat)
+                .filter((effect) => effect.enabled)
+                .forEach((effect) => {
+                    this.applyEffectOperations(effect.operation, changeAbility, () => {}, effect.value)
+                });
         });
         return abilities;
     }
@@ -275,6 +245,18 @@ class DiceCloudImporter extends Application {
             img_url = parsedCharacter.character.picture;
         }
 
+        const charId = parsedCharacter.character._id
+        const effects_by_stat = new Map();
+        parsedCharacter.collections.effects
+            .filter((effect) => effect.charId === charId)
+            .forEach((effect) => {
+                if (effects_by_stat.has(effect.stat)) {
+                    effects_by_stat.get(effect.stat).push(effect);
+                } else {
+                    effects_by_stat.set(effect.stat, [effect]);
+                }
+            });
+
         // Create the temporary actor data structure
         let tempActor = {
             name: parsedCharacter.character.name,
@@ -285,7 +267,7 @@ class DiceCloudImporter extends Application {
                 img: "icons/svg/mystery-man.png",
             },
             data: {
-                abilities: DiceCloudImporter.parseAbilities(parsedCharacter),
+                abilities: DiceCloudImporter.parseAbilities(effects_by_stat),
                 attributes: DiceCloudImporter.parseAttributes(parsedCharacter),
                 currency: DiceCloudImporter.parseCurrency(parsedCharacter),
                 details: DiceCloudImporter.parseDetails(parsedCharacter),
