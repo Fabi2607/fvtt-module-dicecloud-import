@@ -214,6 +214,25 @@ class DiceCloudImporter extends Application {
         };
     }
 
+    static async parseItems(actor, parsedCharacter) {
+        let currencyItems = ["Copper piece", "Silver piece", "Electrum piece", "Gold piece", "Platinum piece"];
+
+        const srd_pack = game.packs.get("dnd5e.items");
+
+        await srd_pack.getIndex();
+
+        let filteredItems = parsedCharacter.collections.items.filter(v => !currencyItems.find(v.name))
+
+        for (let item of filteredItems) {
+            let srd_item = srd_pack.index.find(value => value.name === item.name);
+
+            if (srd_item) {
+                let item_entity = await srd_pack.getEntity(srd_item._id);
+                actor.createEmbeddedEntity("OwnedItem", item_entity);
+            }
+        }
+    }
+
     static parseTraits(parsedCharacter) {
         return {
             size: "med",
@@ -288,9 +307,16 @@ class DiceCloudImporter extends Application {
         if (existingActor == null) {
             let thisActor = await Actor.create(tempActor, {'temporary': false, 'displaySheet': false});
 
+            try {
+                await DiceCloudImporter.parseItems(thisActor, parsedCharacter);
+            } catch (e) {
+                console.error(e);
+            }
+
             // Wrap up
             console.log(`Done importing ${tempActor.name}`);
             ui.notifications.info(`Done importing ${tempActor.name}`);
+
         } else if (updateBool == true) {
             // Need to pass _id to updateEntity
             tempActor._id = existingActor._id;
@@ -301,6 +327,15 @@ class DiceCloudImporter extends Application {
             delete tempActor.token;
 
             existingActor.update(tempActor);
+
+            try {
+                const deletions = existingActor.data.items.map(i => i._id);
+                existingActor.deleteEmbeddedEntity("OwnedItem", deletions);
+
+                await DiceCloudImporter.parseItems(existingActor, parsedCharacter);
+            } catch (e) {
+                console.error(e);
+            }
 
             console.log(`Updated ${tempActor.name}`);
             ui.notifications.info(`Updated data for ${tempActor.name}`);
