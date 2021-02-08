@@ -242,6 +242,7 @@ class DiceCloudImporter extends Application {
 
         let filteredItems = parsedCharacter.collections.items.filter(v => !currencyItems.includes(v.name))
 
+        let items = [];
         for (let item of filteredItems) {
             if (ignore_container_ids.includes(item.parent.id)) {
                 continue;
@@ -273,9 +274,10 @@ class DiceCloudImporter extends Application {
                         value: item.value,
                     }
                 };
-                actor.createEmbeddedEntity("OwnedItem", item_entity);
+                items.push(item_entity);
             }
         }
+        actor.createEmbeddedEntity("OwnedItem", items);
     }
 
     static parseTraits(parsedCharacter) {
