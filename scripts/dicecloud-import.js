@@ -321,6 +321,27 @@ class DiceCloudImporter extends Application {
         actor.createEmbeddedEntity("OwnedItem", items);
     }
 
+    static async parseLevels(actor, parsedCharacter) {
+        const srd_pack = game.packs.get("dnd5e.classes");
+        await srd_pack.getIndex();
+
+        for (let c_class of parsedCharacter.collections.classes) {
+            let srd_item = srd_pack.index.find(value => value.name.toLowerCase() === c_class.name.toLowerCase());
+
+            if (srd_item) {
+                let srd_entity = await srd_pack.getEntity(srd_item._id);
+                srd_entity.data.levels = c_class.level;
+                actor.createEmbeddedEntity("OwnedItem", srd_entity);
+            } else {
+                let item_data = {
+                    name: "Druid",
+                    type: "class",
+                }
+                actor.createEmbeddedEntity("OwnedItem", item_data);
+            }
+        }
+    }
+
     static parseTraits(parsedCharacter) {
         return {
             size: "med",
@@ -408,6 +429,7 @@ class DiceCloudImporter extends Application {
             let thisActor = await Actor.create(tempActor, {'temporary': false, 'displaySheet': false});
 
             try {
+                await DiceCloudImporter.parseLevels(thisActor, parsedCharacter);
                 await DiceCloudImporter.parseItems(thisActor, parsedCharacter);
             } catch (e) {
                 console.error(e);
@@ -432,6 +454,7 @@ class DiceCloudImporter extends Application {
                 const deletions = existingActor.data.items.map(i => i._id);
                 existingActor.deleteEmbeddedEntity("OwnedItem", deletions);
 
+                await DiceCloudImporter.parseLevels(existingActor, parsedCharacter);
                 await DiceCloudImporter.parseItems(existingActor, parsedCharacter);
             } catch (e) {
                 console.error(e);
