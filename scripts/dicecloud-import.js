@@ -231,13 +231,13 @@ class DiceCloudImporter extends Application {
 
         const ignore_containers = ["Robe of Useful Items"];
 
-        const ignore_container_ids = parsedCharacter.collections.items.filter(
+        const ignore_container_ids = parsedCharacter.collections.containers.filter(
             v => ignore_containers.includes(v)).map(v => v._id);
 
         const srd_pack = game.packs.get("dnd5e.items");
         await srd_pack.getIndex();
 
-        let filteredItems = parsedCharacter.collections.items.filter(v => !currencyItems.find(vv => vv === v.name))
+        let filteredItems = parsedCharacter.collections.items.filter(v => !currencyItems.includes(v.name))
 
         for (let item of filteredItems) {
             if (ignore_container_ids.includes(item.parent.id)) {
