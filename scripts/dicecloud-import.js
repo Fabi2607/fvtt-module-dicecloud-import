@@ -11,6 +11,9 @@ Hooks.on("renderSidebarTab", async (app, html) => {
     }
 })
 
+const Noop = () => undefined;
+const Nulp = () => 0;
+
 // Main module class
 class DiceCloudImporter extends Application {
     static get defaultOptions() {
@@ -36,35 +39,46 @@ class DiceCloudImporter extends Application {
         this.close();
     }
 
-    static applyEffectOperations(effect, changeValue, changeAdvantage, calculateValue) {
-        let value;
-        if (effect.value != null) {
-            value = effect.value;
-        } else if (effect.calculation != null) {
-            value = calculateValue(effect.calculation);
-        } else {
-            throw new Error(`could not determine effect value for ${JSON.stringify(effect)}`);
+    static applyEffectOperations(effectList, baseValue, changeValue, changeAdvantage, calculateValue) {
+        function effectValue(effect) {
+            if (effect.value != null) {
+                return effect.value;
+            } else if (effect.calculation != null) {
+                return calculateValue(effect.calculation);
+            } else {
+                throw new Error(`could not determine effect value for ${JSON.stringify(effect)}`);
+            }
         }
 
-        switch (effect.operation) {
-            case "base":
-                changeValue(() => value)
-                break;
-            case "add":
-                changeValue((previousValue) => previousValue + value)
-                break;
-            case "mul":
-                changeValue((previousValue) => previousValue * value)
-                break;
-            case "advantage":
-                changeAdvantage(+1);
-                break;
-            case "disadvantage":
-                changeAdvantage(-1);
-                break;
-            default:
-                throw new Error(`effect operation "${effect.operation}" not implemented`)
+        effectList = effectList.filter((effect) => effect.enabled);
+        const baseEffects = effectList.filter((effect) => effect.operation === "base");
+        if (baseEffects.length === 0) {
+            console.warn(`No base value for effects ${effectList}`);
+        } else {
+            baseValue(effectValue(baseEffects[baseEffects.length - 1]));
         }
+
+        effectList.forEach((effect) => {
+            let value = effectValue(effect);
+            switch (effect.operation) {
+                case "base":
+                    break;
+                case "add":
+                    changeValue((previousValue) => previousValue + value)
+                    break;
+                case "mul":
+                    changeValue((previousValue) => previousValue * value)
+                    break;
+                case "advantage":
+                    changeAdvantage(+1);
+                    break;
+                case "disadvantage":
+                    changeAdvantage(-1);
+                    break;
+                default:
+                    throw new Error(`effect operation "${effect.operation}" not implemented`)
+            }
+        });
     }
 
     static parseAbilities(parsedCharacter, effects_by_stat) {
@@ -85,12 +99,11 @@ class DiceCloudImporter extends Application {
         });
         Array.from(translations.keys()).forEach((stat) => {
             const shortStat = translations.get(stat);
-            function changeAbility(changeFunc) {
+            this.applyEffectOperations(effects_by_stat.get(stat), (base) => {
+                abilities[shortStat].value = base;
+            }, (changeFunc) => {
                 abilities[shortStat].value = changeFunc(abilities[shortStat].value);
-            }
-            effects_by_stat.get(stat)
-                .filter((effect) => effect.enabled)
-                .forEach((effect) => this.applyEffectOperations(effect, changeAbility, () => {}, () => 0));
+            }, Noop, Nulp);
         });
 
         const charId = parsedCharacter.character._id;
@@ -125,47 +138,43 @@ class DiceCloudImporter extends Application {
         spellcasting = spellcastingTranslations.get(spellcasting[0]);
 
         let speed = 30;
-        function changeSpeed(changeFunc) {
+        this.applyEffectOperations(effects_by_stat.get("speed"), (base) => {
+            speed = base;
+        }, (changeFunc) => {
             speed = changeFunc(speed);
-        }
-        effects_by_stat.get("speed")
-            .filter((effect) => effect.enabled)
-            .forEach((effect) => this.applyEffectOperations(effect, changeSpeed, () => {}, () => 0));
+        }, Noop, Nulp);
 
         let armor = 10;
-        function changeArmor(changeFunc) {
+        this.applyEffectOperations(effects_by_stat.get("armor"), (base) => {
+            armor = base;
+        }, (changeFunc) => {
             armor = changeFunc(armor);
-        }
-        effects_by_stat.get("armor")
-            .filter((effect) => effect.enabled)
-            .forEach((effect) => this.applyEffectOperations(effect, changeArmor, () => {}, () => 0));
+        }, Noop, Nulp)
 
         const hp = {
             value: 20,
             min: 0,
             max: 20,
         }
-        function changeMaxHP(changeFunc) {
-            hp.max = changeFunc(hp.max);
-        }
+
         function calculateHP(calculation) {
             if (calculation === "level * constitutionMod") {
-                let constitution = 10
-                function changeConstitution(changeFunc) {
+                let constitution = 10;
+                DiceCloudImporter.applyEffectOperations(effects_by_stat.get("constitution"), (base) => {
+                    constitution = base;
+                }, (changeFunc) => {
                     constitution = changeFunc(constitution);
-                }
-                effects_by_stat.get("constitution")
-                    .filter((effect) => effect.enabled)
-                    .forEach((effect) => {
-                        DiceCloudImporter.applyEffectOperations(effect, changeConstitution, () => {}, () => 0);
-                    });
+                }, Noop, Nulp);
                 return DiceCloudImporter.getLevel(parsedCharacter) * Math.trunc((constitution - 10) / 2)
             }
             return 0;
         }
-        effects_by_stat.get("hitPoints")
-            .filter((effect) => effect.enabled)
-            .forEach((effect) => this.applyEffectOperations(effect, changeMaxHP, () => {}, calculateHP));
+
+        this.applyEffectOperations(effects_by_stat.get("hitPoints"), (base) => {
+            hp.max = base;
+        }, (changeFunc) => {
+            hp.max = changeFunc(hp.max);
+        }, Noop, calculateHP);
         hp.value = hp.max + parsedCharacter.character.hitPoints.adjustment
         const tempHP = parsedCharacter.collections.temporaryHitPoints
             .filter((tempHP) => tempHP.charId === charId);
