@@ -203,14 +203,14 @@ class DiceCloudImporter extends Application {
         console.log(tempActor);
 
         // Check if this actor already exists and handle update/replacement
-        let existingActor = null;
+        let existingActor = game.actors.find(c => c.name === parsedCharacter.name);
 
         if (existingActor == null) {
             let thisActor = await Actor.create(tempActor, {'temporary': false, 'displaySheet': false});
 
             // Wrap up
-            console.log(`Done importing ${c.name} into ${pack.collection}`);
-            ui.notifications.info(`Done importing ${c.name} into ${pack.collection}`);
+            console.log(`Done importing ${tempActor.name}`);
+            ui.notifications.info(`Done importing ${tempActor.name}`);
         } else if (updateBool == true) {
             // Need to pass _id to updateEntity
             tempActor._id = existingActor._id;
@@ -220,13 +220,13 @@ class DiceCloudImporter extends Application {
             delete tempActor.img;
             delete tempActor.token;
 
-            await pack.updateEntity(tempActor);
-            console.log(`Updated ${c.name} in ${pack.collection}`);
-            ui.notifications.info(`Updated data for ${c.name} in ${pack.collection}`);
+            existingActor.update(tempActor);
+
+            console.log(`Updated ${parsedCharacter.name}`);
+            ui.notifications.info(`Updated data for ${parsedCharacter.name}`);
         } else {
-            console.log(`${c.name} already exists. Skipping`);
-            ui.notifications.error(`${c.name} already exists. Skipping`);
+            console.log(`${tempActor.name} already exists. Skipping`);
+            ui.notifications.error(`${tempActor.name} already exists. Skipping`);
         }
-        await pack.getIndex(); // Need to refresh the index to update it
     }
 }
