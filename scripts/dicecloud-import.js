@@ -111,31 +111,48 @@ class DiceCloudImporter extends Application {
     }
 
     static parseAttributes(parsedCharacter) {
+        const spellcastingTranslations = new Map([
+            ["intelligenceMod", "int"],
+            ["wisdomMod", "wis"],
+            ["charismaMod", "cha"],
+        ]);
+        const charId = parsedCharacter.character._id;
+        const spellList = parsedCharacter.collections.spellLists.filter((spellList) => spellList.charId === charId)[0];
+        let spellcasting = Array.from(spellcastingTranslations.keys());
+        spellcasting = spellcasting.filter((value) => spellList.attackBonus.includes(value));
+        if (spellcasting.length === 0) {
+            throw new Error(`could not determine spellcasting ability from ${spellList.attackBonus}`)
+        }
+        spellcasting = spellcastingTranslations.get(spellcasting[0]);
         return {
             ac: {
-                label: "Armor Class",
-                type: "Number",
-                value: 15
+                value: 10,
             },
             death: {
                 success: 0,
                 failure: 0,
             },
+            inspiration: 0,
             exhaustion: 0,
+            encumbrance: {
+                value: null,
+                max: null
+            },
             hd: 3,
             hp: {
                 value: 23,
                 min: 0,
                 max: 23,
+                temp: 0,
+                tempmax: 0,
             },
             init: {
                 value: 0,
                 bonus: 0,
-                mod: 4,
             },
             movement: {
                 burrow: 0,
-                climb: 20,
+                climb: 0,
                 fly: 0,
                 hover: false,
                 swim: 0,
@@ -150,11 +167,7 @@ class DiceCloudImporter extends Application {
                 truesight: 0,
                 units: "ft"
             },
-            speed: {
-                special:  "Burrow 0 ft, Climb 20 ft, Fly 0 ft, Swim 0 ft",
-                value: "30 ft",
-            },
-            spellcasting: "",
+            spellcasting,
             spelldc: 10,
         };
     }
