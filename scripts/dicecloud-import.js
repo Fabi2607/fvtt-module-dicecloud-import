@@ -217,12 +217,21 @@ class DiceCloudImporter extends Application {
             ["Rope, hempen (50 feet)", "Hempen Rope (50 ft.)"],
         ]);
 
+        const ignore_containers = ["Robe of Useful Items"];
+
+        const ignore_container_ids = parsedCharacter.collections.items.filter(
+            v => ignore_containers.includes(v)).map(v => v._id);
+
         const srd_pack = game.packs.get("dnd5e.items");
         await srd_pack.getIndex();
 
         let filteredItems = parsedCharacter.collections.items.filter(v => !currencyItems.find(vv => vv === v.name))
 
         for (let item of filteredItems) {
+            if (ignore_container_ids.includes(item.parent.id)) {
+                continue;
+            }
+
             let itemName = item.name;
             if (srd_item_name_map.has(itemName)) {
                 itemName = srd_item_name_map.get(itemName);
