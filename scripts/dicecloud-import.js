@@ -189,7 +189,7 @@ class DiceCloudImporter extends Application {
                 value: parsedCharacter.character.description,
             },
             bond: parsedCharacter.character.bonds,
-            flaw: parsedCharacter.character.ideals,
+            flaw: parsedCharacter.character.flaws,
             ideal: parsedCharacter.character.ideals,
             level: parsedCharacter.collections.classes.reduce((v, c) => v + c.level),
             race: parsedCharacter.character.race,
