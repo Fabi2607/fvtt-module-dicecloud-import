@@ -36,16 +36,16 @@ class DiceCloudImporter extends Application {
         this.close();
     }
 
-    static applyEffectOperations(operation, changeValue, changeAdvantage, value) {
-        switch (operation) {
+    static applyEffectOperations(effect, changeValue, changeAdvantage) {
+        switch (effect.operation) {
             case "base":
-                changeValue(() => value)
+                changeValue(() => effect.value)
                 break;
             case "add":
-                changeValue((previousValue) => previousValue + value)
+                changeValue((previousValue) => previousValue + effect.value)
                 break;
             case "mul":
-                changeValue((previousValue) => previousValue * value)
+                changeValue((previousValue) => previousValue * effect.value)
                 break;
             case "advantage":
                 changeAdvantage(+1);
@@ -54,7 +54,7 @@ class DiceCloudImporter extends Application {
                 changeAdvantage(-1);
                 break;
             default:
-                throw new Error(`operation "${operation}" not implemented`)
+                throw new Error(`effect operation "${effect.operation}" not implemented`)
         }
     }
 
@@ -81,9 +81,7 @@ class DiceCloudImporter extends Application {
             }
             effects_by_stat.get(stat)
                 .filter((effect) => effect.enabled)
-                .forEach((effect) => {
-                    this.applyEffectOperations(effect.operation, changeAbility, () => {}, effect.value)
-                });
+                .forEach((effect) => this.applyEffectOperations(effect, changeAbility, () => {}));
         });
         return abilities;
     }
