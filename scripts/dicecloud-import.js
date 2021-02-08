@@ -110,7 +110,7 @@ class DiceCloudImporter extends Application {
         }
         effects_by_stat.get("speed")
             .filter((effect) => effect.enabled)
-            .forEach((effect) => applyEffectOperations(effect, changeSpeed, () => {}));
+            .forEach((effect) => this.applyEffectOperations(effect, changeSpeed, () => {}));
 
         let armor = 10;
         function changeArmor(changeFunc) {
@@ -118,7 +118,7 @@ class DiceCloudImporter extends Application {
         }
         effects_by_stat.get("armor")
             .filter((effect) => effect.enabled)
-            .forEach((effect) => applyEffectOperations(effect, changeArmor, () => {}));
+            .forEach((effect) => this.applyEffectOperations(effect, changeArmor, () => {}));
 
         const hp = {
             value: 23,
@@ -130,7 +130,7 @@ class DiceCloudImporter extends Application {
         }
         effects_by_stat.get("hitPoints")
             .filter((effect) => effect.enabled)
-            .forEach((effect) => applyEffectOperations(effect, changeMaxHP, () => {}));
+            .forEach((effect) => this.applyEffectOperations(effect, changeMaxHP, () => {}));
         hp.value = hp.max + parsedCharacter.character.hitPoints.adjustment
         const tempHP = parsedCharacter.temporaryHitPoints.filter((tempHP) => tempHP.charId === charId);
         if (tempHP.length !== 0) {
