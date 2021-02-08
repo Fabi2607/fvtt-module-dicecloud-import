@@ -215,6 +215,10 @@ class DiceCloudImporter extends Application {
         // Find image if present
         let img_url = "icons/svg/mystery-man.png";
 
+        if (parsedCharacter.character.picture) {
+            img_url = parsedCharacter.character.picture;
+        }
+
         // Create the temporary actor data structure
         let tempActor = {
             name: parsedCharacter.character.name,
@@ -222,7 +226,7 @@ class DiceCloudImporter extends Application {
             img: img_url,
             token: {
                 name: parsedCharacter.character.name,
-                img: img_url
+                img: img_url,
             },
             data: {
                 abilities: DiceCloudImporter.parseAbilities(parsedCharacter),
