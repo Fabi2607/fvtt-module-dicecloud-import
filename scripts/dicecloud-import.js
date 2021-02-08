@@ -28,7 +28,7 @@ class DiceCloudImporter extends Application {
 
     activateListeners(html) {
         super.activateListeners(html)
-        html.find(".import-critter").click(async ev => {
+        html.find(".import-dicecloud").click(async ev => {
             let dicecloudJSON = html.find('[name=dicecloud-json]').val();
             let updateBool = html.find('[name=updateButton]').is(':checked');
             await DiceCloudImporter.parseCharacter(dicecloudJSON, updateBool)
