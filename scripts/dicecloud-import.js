@@ -187,17 +187,49 @@ class DiceCloudImporter extends Application {
     static async parseItems(actor, parsedCharacter) {
         let currencyItems = ["Copper piece", "Silver piece", "Electrum piece", "Gold piece", "Platinum piece"];
 
-        const srd_pack = game.packs.get("dnd5e.items");
+        const srd_item_name_map = new Map([
+            ["Clothes, common", "Common Clothes"],
+            ["Clothes, costume", "Costume Clothes"],
+            ["Clothes, fine", "Fine Clothes"],
+            ["Clothes, traveler's", "Traveler's Clothes"],
+            ["Wooden Shield", "Shield"],
+            ["Rations (1 day)", "Rations"],
+            ["Wooden staff (druidic focus)", "Wooden Staff"],
+            ["Paper (one sheet)", "Paper"],
+            ["Ink (1 ounce bottle)", "Ink Bottle"],
+            ["Rope, hempen (50 feet)", "Hempen Rope (50 ft.)"],
+        ]);
 
+        const srd_pack = game.packs.get("dnd5e.items");
         await srd_pack.getIndex();
 
         let filteredItems = parsedCharacter.collections.items.filter(v => !currencyItems.find(vv => vv === v.name))
 
         for (let item of filteredItems) {
-            let srd_item = srd_pack.index.find(value => value.name === item.name);
+            let itemName = item.name;
+            if (srd_item_name_map.has(itemName)) {
+                itemName = srd_item_name_map.get(itemName);
+            }
+
+            let srd_item = srd_pack.index.find(value => value.name.toLowerCase() === itemName.toLowerCase());
 
             if (srd_item) {
                 let item_entity = await srd_pack.getEntity(srd_item._id);
+                item_entity.data.quantity = item.quantity;
+                item_entity.equipped = item.enabled;
+                actor.createEmbeddedEntity("OwnedItem", item_entity);
+            } else {
+                let item_entity = {
+                    name: item.name,
+                    type: "loot",
+                    data: {
+                        quantity: item.quantity,
+                        description: item.description,
+                        equipped: item.enabled,
+                        weight: item.weight,
+                        value: item.value,
+                    }
+                };
                 actor.createEmbeddedEntity("OwnedItem", item_entity);
             }
         }
