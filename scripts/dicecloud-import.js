@@ -89,12 +89,13 @@ class DiceCloudImporter extends Application {
     }
 
     static parseAttributes(parsedCharacter, effects_by_stat) {
+        const charId = parsedCharacter.character._id;
+
         const spellcastingTranslations = new Map([
             ["intelligenceMod", "int"],
             ["wisdomMod", "wis"],
             ["charismaMod", "cha"],
         ]);
-        const charId = parsedCharacter.character._id;
         const spellList = parsedCharacter.collections.spellLists.filter((spellList) => spellList.charId === charId)[0];
         let spellcasting = Array.from(spellcastingTranslations.keys());
         spellcasting = spellcasting.filter((value) => spellList.attackBonus.includes(value));
@@ -119,6 +120,24 @@ class DiceCloudImporter extends Application {
             .filter((effect) => effect.enabled)
             .forEach((effect) => applyEffectOperations(effect, changeArmor, () => {}));
 
+        const hp = {
+            value: 23,
+            min: 0,
+            max: 23,
+        }
+        function changeMaxHP(changeFunc) {
+            hp.max = changeFunc(hp.max);
+        }
+        effects_by_stat.get("hitPoints")
+            .filter((effect) => effect.enabled)
+            .forEach((effect) => applyEffectOperations(effect, changeMaxHP, () => {}));
+        hp.value = hp.max + parsedCharacter.character.hitPoints.adjustment
+        const tempHP = parsedCharacter.temporaryHitPoints.filter((tempHP) => tempHP.charId === charId);
+        if (tempHP.length !== 0) {
+            hp["temp"] = tempHP[0].maximum - tempHP[0].used
+            hp["tempmax"] = tempHP[0].maximum
+        }
+
         return {
             ac: {
                 value: armor,
@@ -134,13 +153,7 @@ class DiceCloudImporter extends Application {
                 max: null
             },
             hd: 3,
-            hp: {
-                value: 23,
-                min: 0,
-                max: 23,
-                temp: 0,
-                tempmax: 0,
-            },
+            hp,
             init: {
                 value: 0,
                 bonus: 0,
