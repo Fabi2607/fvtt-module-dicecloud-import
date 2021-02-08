@@ -93,7 +93,7 @@ class DiceCloudImporter extends Application {
                 .forEach((effect) => this.applyEffectOperations(effect, changeAbility, () => {}, () => 0));
         });
 
-        const charId = parsedCharacter.character.charId;
+        const charId = parsedCharacter.character._id;
         parsedCharacter.collections.proficiencies
             .filter((prof) => prof.enabled && prof.charId === charId && prof.type === "save")
             .forEach((prof) => {
@@ -439,7 +439,7 @@ class DiceCloudImporter extends Application {
             console.log(`Done importing ${tempActor.name}`);
             ui.notifications.info(`Done importing ${tempActor.name}`);
 
-        } else if (updateBool == true) {
+        } else if (updateBool) {
             // Need to pass _id to updateEntity
             tempActor._id = existingActor._id;
 
