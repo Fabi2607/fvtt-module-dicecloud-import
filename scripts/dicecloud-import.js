@@ -298,8 +298,12 @@ class DiceCloudImporter extends Application {
 
             if (srd_item) {
                 let item_entity = await srd_pack.getEntity(srd_item._id);
-                item_entity.data.quantity = item.quantity;
-                item_entity.equipped = item.enabled;
+                item_entity.update({
+                    data: {
+                        quantity: item.quantity,
+                    },
+                    equipped: item.enabled,
+                });
                 actor.createEmbeddedEntity("OwnedItem", item_entity);
             } else {
                 let item_entity = {
@@ -330,7 +334,11 @@ class DiceCloudImporter extends Application {
 
             if (srd_item) {
                 let srd_entity = await srd_pack.getEntity(srd_item._id);
-                srd_entity.data.levels = c_class.level;
+                srd_entity.update({
+                    data: {
+                        levels: c_class.level,
+                    }
+                });
                 actor.createEmbeddedEntity("OwnedItem", srd_entity);
             } else {
                 let item_data = {
