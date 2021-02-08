@@ -203,7 +203,7 @@ class DiceCloudImporter extends Application {
         console.log(tempActor);
 
         // Check if this actor already exists and handle update/replacement
-        let existingActor = game.actors.find(c => c.name === parsedCharacter.name);
+        let existingActor = game.actors.find(c => c.name === tempActor.name);
 
         if (existingActor == null) {
             let thisActor = await Actor.create(tempActor, {'temporary': false, 'displaySheet': false});
@@ -222,8 +222,8 @@ class DiceCloudImporter extends Application {
 
             existingActor.update(tempActor);
 
-            console.log(`Updated ${parsedCharacter.name}`);
-            ui.notifications.info(`Updated data for ${parsedCharacter.name}`);
+            console.log(`Updated ${tempActor.name}`);
+            ui.notifications.info(`Updated data for ${tempActor.name}`);
         } else {
             console.log(`${tempActor.name} already exists. Skipping`);
             ui.notifications.error(`${tempActor.name} already exists. Skipping`);
