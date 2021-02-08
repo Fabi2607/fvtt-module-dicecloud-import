@@ -224,7 +224,9 @@ class DiceCloudImporter extends Application {
                     type: "loot",
                     data: {
                         quantity: item.quantity,
-                        description: item.description,
+                        description: {
+                            value: item.description
+                        },
                         equipped: item.enabled,
                         weight: item.weight,
                         value: item.value,
