@@ -37,44 +37,83 @@ class DiceCloudImporter extends Application {
     }
 
     static parseAbilities(parsedCharacter) {
-        return {
+        const translations = new Map([
+            ["strength", "str"],
+            ["dexterity", "dex"],
+            ["constitution", "con"],
+            ["intelligence", "int"],
+            ["wisdom", "wis"],
+            ["charisma", "cha"],
+        ]);
+        const charId = parsedCharacter.character._id
+        const effects_by_stat = new Map();
+        parsedCharacter.collections.effects
+            .filter((effect) => translations.has(effect.stat))
+            .forEach((effect) => {
+                if (effects_by_stat.has(effect.stat)) {
+                    effects_by_stat.get(effect.stat).push(effect);
+                } else {
+                    effects_by_stat.set(effect.stat, [effect]);
+                }
+            });
+        const abilities = {
             str: {
-                min: 3,
                 mod: 0,
                 proficient: 0,
                 value: 10,
             },
             dex: {
-                min: 3,
                 mod: 0,
                 proficient: 0,
                 value: 10,
             },
             con: {
-                min: 3,
                 mod: 0,
                 proficient: 0,
                 value: 10,
             },
             int: {
-                min: 3,
                 mod: 0,
                 proficient: 0,
                 value: 10,
             },
             wis: {
-                min: 3,
                 mod: 0,
                 proficient: 0,
                 value: 10,
             },
             cha: {
-                min: 3,
                 mod: 0,
                 proficient: 0,
                 value: 10,
             }
         };
+        effects_by_stat.forEach((effectList, stat) => {
+            effectList.forEach((effect) => {
+                if (!effect.enabled) return;
+                if (effect.charId !== charId) return;
+                switch (effect.operation) {
+                    case "base":
+                        abilities[translations.get(stat)].value = effect.value;
+                        break;
+                    case "add":
+                        abilities[translations.get(stat)].value += effect.value;
+                        break;
+                    case "mul":
+                        abilities[translations.get(stat)].value *= effect.value;
+                        break;
+                    case "advantage":
+                        abilities[translations.get(stat)].proficient += 1;
+                        break;
+                    case "disadvantage":
+                        abilities[translations.get(stat)].proficient -= 1;
+                        break;
+                    default:
+                        throw new Error(`effect operation "${effect.operation}" not implemented`)
+                }
+            });
+        });
+        return abilities;
     }
 
     static parseAttributes(parsedCharacter) {
