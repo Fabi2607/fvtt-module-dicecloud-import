@@ -221,7 +221,7 @@ class DiceCloudImporter extends Application {
 
         await srd_pack.getIndex();
 
-        let filteredItems = parsedCharacter.collections.items.filter(v => !currencyItems.find(v.name))
+        let filteredItems = parsedCharacter.collections.items.filter(v => !currencyItems.find(vv => vv === v.name))
 
         for (let item of filteredItems) {
             let srd_item = srd_pack.index.find(value => value.name === item.name);
