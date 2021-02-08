@@ -178,11 +178,11 @@ class DiceCloudImporter extends Application {
 
         // Create the temporary actor data structure
         let tempActor = {
-            name: parsedCharacter.name,
+            name: parsedCharacter.character.name,
             type: "character",
             img: img_url,
             token: {
-                name: parsedCharacter.name,
+                name: parsedCharacter.character.name,
                 img: img_url
             },
             data: {
