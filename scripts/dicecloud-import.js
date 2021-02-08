@@ -299,7 +299,8 @@ class DiceCloudImporter extends Application {
             if (srd_item) {
                 let item_entity = await srd_pack.getEntity(srd_item._id);
                 const entity = await actor.createEmbeddedEntity("OwnedItem", item_entity);
-                entity.update({
+                await actor.updateEmbeddedEntity("OwnedItem", {
+                    _id: entity._id,
                     data: {
                         quantity: item.quantity,
                     },
@@ -336,7 +337,8 @@ class DiceCloudImporter extends Application {
                 let srd_entity = await srd_pack.getEntity(srd_item._id);
 
                 let entity = await actor.createEmbeddedEntity("OwnedItem", srd_entity);
-                entity.update({
+                await actor.updateEmbeddedEntity("OwnedItem", {
+                    _id: entity._id,
                     data: {
                         levels: c_class.level,
                     }
