@@ -191,18 +191,18 @@ class DiceCloudImporter extends Application {
     }
 
     static parseCurrency(parsedCharacter) {
-        let copper_pieces = parsedCharacter.collections.items.find(i => i.value === 0.01);
-        let silver_pieces = parsedCharacter.collections.items.find(i => i.value === 0.1);
-        let electrum_pieces = parsedCharacter.collections.items.find(i => i.value === 0.5);
-        let gold_pieces = parsedCharacter.collections.items.find(i => i.value === 1);
-        let platinum_pieces = parsedCharacter.collections.items.find(i => i.value === 10);
+        let copper_pieces = parsedCharacter.collections.items.find(i => i.name === "Copper piece");
+        let silver_pieces = parsedCharacter.collections.items.find(i => i.name === "Silver piece");
+        let electrum_pieces = parsedCharacter.collections.items.find(i => i.name === "Electrum piece");
+        let gold_pieces = parsedCharacter.collections.items.find(i => i.name === "Gold piece");
+        let platinum_pieces = parsedCharacter.collections.items.find(i => i.name === "Platinum piece");
 
         return {
-            cp: copper_pieces.reduce((v, c) => v + c.value),
-            ep: electrum_pieces.reduce((v, c) => v + c.value),
-            gp: gold_pieces.reduce((v, c) => v + c.value),
-            pp: platinum_pieces.reduce((v, c) => v + c.value),
-            sp: silver_pieces.reduce((v, c) => v + c.value),
+            cp: copper_pieces.quantity ? copper_pieces.quantity : 0,
+            ep: electrum_pieces.quantity ? electrum_pieces.quantity : 0,
+            gp: gold_pieces.quantity ? gold_pieces.quantity : 0,
+            pp: platinum_pieces.quantity ? platinum_pieces.quantity : 0,
+            sp: silver_pieces.quantity ? silver_pieces.quantity : 0,
         };
     }
 
