@@ -58,32 +58,26 @@ class DiceCloudImporter extends Application {
             });
         const abilities = {
             str: {
-                mod: 0,
                 proficient: 0,
                 value: 10,
             },
             dex: {
-                mod: 0,
                 proficient: 0,
                 value: 10,
             },
             con: {
-                mod: 0,
                 proficient: 0,
                 value: 10,
             },
             int: {
-                mod: 0,
                 proficient: 0,
                 value: 10,
             },
             wis: {
-                mod: 0,
                 proficient: 0,
                 value: 10,
             },
             cha: {
-                mod: 0,
                 proficient: 0,
                 value: 10,
             }
