@@ -36,6 +36,28 @@ class DiceCloudImporter extends Application {
         this.close();
     }
 
+    static applyEffectOperations(operation, changeValue, changeAdvantage, value) {
+        switch (operation) {
+            case "base":
+                changeValue(() => value)
+                break;
+            case "add":
+                changeValue((previousValue) => previousValue + value)
+                break;
+            case "mul":
+                changeValue((previousValue) => previousValue * value)
+                break;
+            case "advantage":
+                changeAdvantage(+1);
+                break;
+            case "disadvantage":
+                changeAdvantage(-1);
+                break;
+            default:
+                throw new Error(`operation "${operation}" not implemented`)
+        }
+    }
+
     static parseAbilities(parsedCharacter) {
         const translations = new Map([
             ["strength", "str"],
@@ -86,25 +108,11 @@ class DiceCloudImporter extends Application {
             effectList.forEach((effect) => {
                 if (!effect.enabled) return;
                 if (effect.charId !== charId) return;
-                switch (effect.operation) {
-                    case "base":
-                        abilities[translations.get(stat)].value = effect.value;
-                        break;
-                    case "add":
-                        abilities[translations.get(stat)].value += effect.value;
-                        break;
-                    case "mul":
-                        abilities[translations.get(stat)].value *= effect.value;
-                        break;
-                    case "advantage":
-                        abilities[translations.get(stat)].proficient += 1;
-                        break;
-                    case "disadvantage":
-                        abilities[translations.get(stat)].proficient -= 1;
-                        break;
-                    default:
-                        throw new Error(`effect operation "${effect.operation}" not implemented`)
+                const shortStat = translations.get(stat);
+                function changeAbility(changeFunc) {
+                    abilities[shortStat].value = changeFunc(abilities[shortStat].value);
                 }
+                this.applyEffectOperations(effect.operation, changeAbility, () => {}, effect.value);
             });
         });
         return abilities;
