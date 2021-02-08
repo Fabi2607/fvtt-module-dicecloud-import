@@ -167,9 +167,19 @@ class DiceCloudImporter extends Application {
 
     static parseDetails(parsedCharacter) {
         return {
-            alignment: "",
-            type: "race",
-            source: `DiceCloud`
+            alignment: parsedCharacter.character.alignment,
+            appearance: "",
+            background: parsedCharacter.character.backstory,
+            biography: {
+                value: parsedCharacter.character.description,
+            },
+            bond: parsedCharacter.character.bonds,
+            flaw: parsedCharacter.character.ideals,
+            ideal: parsedCharacter.character.ideals,
+            level: parsedCharacter.collections.classes.reduce((v, c) => v + c.level),
+            race: parsedCharacter.character.race,
+            trait: parsedCharacter.character.personality,
+            source: `DiceCloud`,
         };
     }
 
@@ -226,7 +236,7 @@ class DiceCloudImporter extends Application {
             img: img_url,
             token: {
                 name: parsedCharacter.character.name,
-                img: img_url,
+                img: "icons/svg/mystery-man.png",
             },
             data: {
                 abilities: DiceCloudImporter.parseAbilities(parsedCharacter),
