@@ -130,7 +130,8 @@ class DiceCloudImporter extends Application {
             .filter((effect) => effect.enabled)
             .forEach((effect) => this.applyEffectOperations(effect, changeMaxHP, () => {}));
         hp.value = hp.max + parsedCharacter.character.hitPoints.adjustment
-        const tempHP = parsedCharacter.temporaryHitPoints.filter((tempHP) => tempHP.charId === charId);
+        const tempHP = parsedCharacter.collections.temporaryHitPoints
+            .filter((tempHP) => tempHP.charId === charId);
         if (tempHP.length !== 0) {
             hp["temp"] = tempHP[0].maximum - tempHP[0].used
             hp["tempmax"] = tempHP[0].maximum
