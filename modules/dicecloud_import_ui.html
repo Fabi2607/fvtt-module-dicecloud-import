@@ -1,0 +1,28 @@
+<div>
+    <div class = "form-group-import">
+        <h2>To get your critter or bestiary from <a href="https://critterdb.com">CritterDB:</a></h2>
+        <h3>For a single creature:</h3>
+        <ul>
+            <li>Click on the down arrow in the upper right of the stat block</li>
+            <li>Select "Export"</li>
+            <li>Select "Export to JSON"</li>
+            <li>Select "CritterDB JSON"</li>
+            <li>Click "Copy to Clipboard"</li>
+        </ul>
+        <h3>For an entire bestiary:</h3>
+        <ul>
+            <li>Open the bestiary</li>
+            <li>Click the three-dots menu in the upper right</li>
+            <li>Select "Export"</li>
+            <li>Select "CritterDB JSON"</li>
+            <li>Click "Copy to Clipboard"</li>
+        </ul>
+        <br />
+
+        <h2>Paste the JSON into the box below and click "Import".</h2>
+        <textarea id="dicecloud-json" name="dicecloud-json" rows="10" cols="50"></textarea>
+        <input class="update-checkbox" type="checkbox" value="1" name="updateButton" checked>
+        <label for="updateButton">Update existing?</label>
+        <input type="submit" class="import-dicecloud" value="Import">
+    </div>
+</div>
