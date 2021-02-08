@@ -36,16 +36,25 @@ class DiceCloudImporter extends Application {
         this.close();
     }
 
-    static applyEffectOperations(effect, changeValue, changeAdvantage) {
+    static applyEffectOperations(effect, changeValue, changeAdvantage, calculateValue) {
+        let value;
+        if (effect.value != null) {
+            value = effect.value;
+        } else if (effect.calculation != null) {
+            value = calculateValue(effect.calculation);
+        } else {
+            throw new Error(`could not determine effect value for ${effect}`);
+        }
+
         switch (effect.operation) {
             case "base":
-                changeValue(() => effect.value)
+                changeValue(() => value)
                 break;
             case "add":
-                changeValue((previousValue) => previousValue + effect.value)
+                changeValue((previousValue) => previousValue + value)
                 break;
             case "mul":
-                changeValue((previousValue) => previousValue * effect.value)
+                changeValue((previousValue) => previousValue * value)
                 break;
             case "advantage":
                 changeAdvantage(+1);
@@ -81,7 +90,7 @@ class DiceCloudImporter extends Application {
             }
             effects_by_stat.get(stat)
                 .filter((effect) => effect.enabled)
-                .forEach((effect) => this.applyEffectOperations(effect, changeAbility, () => {}));
+                .forEach((effect) => this.applyEffectOperations(effect, changeAbility, () => {}, () => 0));
         });
         return abilities;
     }
@@ -108,7 +117,7 @@ class DiceCloudImporter extends Application {
         }
         effects_by_stat.get("speed")
             .filter((effect) => effect.enabled)
-            .forEach((effect) => this.applyEffectOperations(effect, changeSpeed, () => {}));
+            .forEach((effect) => this.applyEffectOperations(effect, changeSpeed, () => {}, () => 0));
 
         let armor = 10;
         function changeArmor(changeFunc) {
@@ -116,19 +125,34 @@ class DiceCloudImporter extends Application {
         }
         effects_by_stat.get("armor")
             .filter((effect) => effect.enabled)
-            .forEach((effect) => this.applyEffectOperations(effect, changeArmor, () => {}));
+            .forEach((effect) => this.applyEffectOperations(effect, changeArmor, () => {}, () => 0));
 
         const hp = {
-            value: 23,
+            value: 20,
             min: 0,
-            max: 23,
+            max: 20,
         }
         function changeMaxHP(changeFunc) {
             hp.max = changeFunc(hp.max);
         }
+        function calculateHP(calculation) {
+            if (calculation === "level * constitutionMod") {
+                let constitution = 10
+                function changeConstitution(changeFunc) {
+                    constitution = changeFunc(constitution);
+                }
+                effects_by_stat.get("constitution")
+                    .filter((effect) => effect.enabled)
+                    .forEach((effect) => {
+                        DiceCloudImporter.applyEffectOperations(effect, changeConstitution, () => {}, () => 0);
+                    });
+                return DiceCloudImporter.getLevel(parsedCharacter) * Math.trunc((constitution - 10) / 2)
+            }
+            return 0;
+        }
         effects_by_stat.get("hitPoints")
             .filter((effect) => effect.enabled)
-            .forEach((effect) => this.applyEffectOperations(effect, changeMaxHP, () => {}));
+            .forEach((effect) => this.applyEffectOperations(effect, changeMaxHP, () => {}, calculateHP));
         hp.value = hp.max + parsedCharacter.character.hitPoints.adjustment
         const tempHP = parsedCharacter.collections.temporaryHitPoints
             .filter((tempHP) => tempHP.charId === charId);
@@ -190,11 +214,15 @@ class DiceCloudImporter extends Application {
             bond: parsedCharacter.character.bonds,
             flaw: parsedCharacter.character.flaws,
             ideal: parsedCharacter.character.ideals,
-            level: parsedCharacter.collections.classes.reduce((v, c) => v + c.level),
+            level: this.getLevel(parsedCharacter),
             race: parsedCharacter.character.race,
             trait: parsedCharacter.character.personality,
             source: `DiceCloud`,
         };
+    }
+
+    static getLevel(parsedCharacter) {
+        return parsedCharacter.collections.classes.reduce((v, c) => v + c.level, 0);
     }
 
     static parseCurrency(parsedCharacter) {
