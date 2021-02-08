@@ -184,7 +184,19 @@ class DiceCloudImporter extends Application {
     }
 
     static parseCurrency(parsedCharacter) {
-        return {};
+        let copper_pieces = parsedCharacter.collections.items.find(i => i.value === 0.01);
+        let silver_pieces = parsedCharacter.collections.items.find(i => i.value === 0.1);
+        let electrum_pieces = parsedCharacter.collections.items.find(i => i.value === 0.5);
+        let gold_pieces = parsedCharacter.collections.items.find(i => i.value === 1);
+        let platinum_pieces = parsedCharacter.collections.items.find(i => i.value === 10);
+
+        return {
+            cp: copper_pieces.reduce((v, c) => v + c.value),
+            ep: electrum_pieces.reduce((v, c) => v + c.value),
+            gp: gold_pieces.reduce((v, c) => v + c.value),
+            pp: platinum_pieces.reduce((v, c) => v + c.value),
+            sp: silver_pieces.reduce((v, c) => v + c.value),
+        };
     }
 
     static parseTraits(parsedCharacter) {
