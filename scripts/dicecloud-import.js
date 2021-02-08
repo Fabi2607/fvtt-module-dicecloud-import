@@ -198,11 +198,11 @@ class DiceCloudImporter extends Application {
         let platinum_pieces = parsedCharacter.collections.items.find(i => i.name === "Platinum piece");
 
         return {
-            cp: copper_pieces.quantity ? copper_pieces.quantity : 0,
-            ep: electrum_pieces.quantity ? electrum_pieces.quantity : 0,
-            gp: gold_pieces.quantity ? gold_pieces.quantity : 0,
-            pp: platinum_pieces.quantity ? platinum_pieces.quantity : 0,
-            sp: silver_pieces.quantity ? silver_pieces.quantity : 0,
+            cp: copper_pieces ? copper_pieces.quantity : 0,
+            ep: electrum_pieces ? electrum_pieces.quantity : 0,
+            gp: gold_pieces ? gold_pieces.quantity : 0,
+            pp: platinum_pieces ? platinum_pieces.quantity : 0,
+            sp: silver_pieces ? silver_pieces.quantity : 0,
         };
     }
 
