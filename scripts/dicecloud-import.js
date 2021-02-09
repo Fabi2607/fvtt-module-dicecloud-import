@@ -215,7 +215,7 @@ class DiceCloudImporter extends Application {
             },
             senses: {
                 blindsight: 0,
-                darkvision: 60,
+                darkvision: 0,
                 special: "",
                 tremorsense: 0,
                 truesight: 0,
@@ -486,6 +486,20 @@ class DiceCloudImporter extends Application {
         for (let feature of parsedCharacter.collections.features) {
             if (ignore_class_features.includes(feature.name)) {
                 continue;
+            }
+
+            if (feature.name.toLowerCase() === "darkvision") {
+                let range = feature.description.split(" ")[0];
+
+                actor.update({
+                    data: {
+                        attributes: {
+                            senses: {
+                                darkvision: range,
+                            }
+                        }
+                    }
+                })
             }
 
             let srd_item = await this.findInCompendiums(compendiums, feature.name);
