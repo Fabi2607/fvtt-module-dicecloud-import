@@ -285,6 +285,12 @@ class DiceCloudImporter extends Application {
     }
 
     static async findInCompendiums(compendiums, name) {
+        const gameEntity = game.items.find(i => i.name === name.trim().toLowerCase());
+
+        if (gameEntity) {
+            return gameEntity;
+        }
+
         for (let compendium of compendiums) {
             let item = compendium.index.find(value => value.name.toLowerCase() === name.trim().toLowerCase());
 
