@@ -310,7 +310,7 @@ class DiceCloudImporter extends Application {
             ["Clothes, common", "Common Clothes"],
             ["Clothes, costume", "Costume Clothes"],
             ["Clothes, fine", "Fine Clothes"],
-            ["Clothes, traveler's", "Traveler's Clothes"],
+            ["Clothes, traveler’s", "Traveler's Clothes"],
             ["Wooden Shield", "Shield"],
             ["Rations (1 day)", "Rations"],
             ["Wooden staff (druidic focus)", "Wooden Staff"],
