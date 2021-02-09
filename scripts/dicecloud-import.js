@@ -230,22 +230,24 @@ class DiceCloudImporter extends Application {
         return {
             alignment: parsedCharacter.character.alignment,
             appearance: "",
-            background: parsedCharacter.character.backstory,
+            background: this.markdownToHTML(parsedCharacter.character.backstory),
             biography: {
                 value: this.markdownToHTML(parsedCharacter.character.description),
             },
-            bond: parsedCharacter.character.bonds,
-            flaw: parsedCharacter.character.flaws,
-            ideal: parsedCharacter.character.ideals,
+            bond: this.markdownToHTML(parsedCharacter.character.bonds),
+            flaw: this.markdownToHTML(parsedCharacter.character.flaws),
+            ideal: this.markdownToHTML(parsedCharacter.character.ideals),
             level: this.getLevel(parsedCharacter),
             race: parsedCharacter.character.race,
-            trait: parsedCharacter.character.personality,
+            trait: this.markdownToHTML(parsedCharacter.character.personality),
             source: `DiceCloud`,
         };
     }
 
     static markdownToHTML(text) {
-        return text.replaceAll(/\n\s*\n/g, "<br><br>")
+        return text
+            .replaceAll(/\n\s*\n/g, "<br><br>")
+            .replaceAll(/\[(.+?)\]\((https?:\/\/.+?)\)/g, "<a href=\"$2\">$1</a>");
     }
 
     static getLevel(parsedCharacter) {
