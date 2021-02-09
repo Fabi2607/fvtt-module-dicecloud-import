@@ -232,7 +232,7 @@ class DiceCloudImporter extends Application {
             appearance: "",
             background: parsedCharacter.character.backstory,
             biography: {
-                value: parsedCharacter.character.description.replaceAll(/\n\s*\n/, "<br><br>"),
+                value: this.markdownToHTML(parsedCharacter.character.description),
             },
             bond: parsedCharacter.character.bonds,
             flaw: parsedCharacter.character.flaws,
@@ -242,6 +242,10 @@ class DiceCloudImporter extends Application {
             trait: parsedCharacter.character.personality,
             source: `DiceCloud`,
         };
+    }
+
+    static markdownToHTML(text) {
+        return text.replaceAll(/\n\s*\n/g, "<br><br>")
     }
 
     static getLevel(parsedCharacter) {
