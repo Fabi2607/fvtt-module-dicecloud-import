@@ -12,7 +12,6 @@ Hooks.on("renderSidebarTab", async (app, html) => {
 })
 
 const Noop = () => undefined;
-const Nulp = () => 0;
 
 // Main module class
 class DiceCloudImporter extends Application {
@@ -39,18 +38,33 @@ class DiceCloudImporter extends Application {
         this.close();
     }
 
-    static applyEffectOperations(effectList, baseValue, changeValue, changeAdvantage, calculateValue) {
+    static arbitaryCalculation(parsedCharacter, effectsByStat, calculation) {
+        if (calculation === "level * constitutionMod") {
+            let constitution = 10;
+            DiceCloudImporter.applyEffectOperations(parsedCharacter, effectsByStat, "constitution", (base) => {
+                constitution = base;
+            }, (changeFunc) => {
+                constitution = changeFunc(constitution);
+            }, Noop);
+            return DiceCloudImporter.getLevel(parsedCharacter) * Math.trunc((constitution - 10) / 2)
+        } else {
+            console.warn(`Could not calculate ${calculation}`)
+            return 0;
+        }
+    }
+
+    static applyEffectOperations(parsedCharacter, effectsByStat, stat, baseValue, changeValue, changeAdvantage) {
         function effectValue(effect) {
             if (effect.value != null) {
                 return effect.value;
             } else if (effect.calculation != null) {
-                return calculateValue(effect.calculation);
+                return DiceCloudImporter.arbitaryCalculation(parsedCharacter, effectsByStat, effect.calculation);
             } else {
                 throw new Error(`could not determine effect value for ${JSON.stringify(effect)}`);
             }
         }
 
-        effectList = effectList.filter((effect) => effect.enabled);
+        const effectList = effectsByStat.get(stat).filter((effect) => effect.enabled);
         const baseEffects = effectList.filter((effect) => effect.operation === "base");
         if (baseEffects.length === 0) {
             console.warn(`No base value for effects ${effectList}`);
@@ -81,7 +95,7 @@ class DiceCloudImporter extends Application {
         });
     }
 
-    static parseAbilities(parsedCharacter, effects_by_stat) {
+    static parseAbilities(parsedCharacter, effectsByStat) {
         const translations = new Map([
             ["strength", "str"],
             ["dexterity", "dex"],
@@ -99,11 +113,11 @@ class DiceCloudImporter extends Application {
         });
         Array.from(translations.keys()).forEach((stat) => {
             const shortStat = translations.get(stat);
-            this.applyEffectOperations(effects_by_stat.get(stat), (base) => {
+            this.applyEffectOperations(parsedCharacter, effectsByStat, stat, (base) => {
                 abilities[shortStat].value = base;
             }, (changeFunc) => {
                 abilities[shortStat].value = changeFunc(abilities[shortStat].value);
-            }, Noop, Nulp);
+            }, Noop);
         });
 
         const charId = parsedCharacter.character._id;
@@ -121,7 +135,7 @@ class DiceCloudImporter extends Application {
         return abilities;
     }
 
-    static parseAttributes(parsedCharacter, effects_by_stat) {
+    static parseAttributes(parsedCharacter, effectsByStat) {
         const charId = parsedCharacter.character._id;
 
         const spellcastingTranslations = new Map([
@@ -138,18 +152,18 @@ class DiceCloudImporter extends Application {
         spellcasting = spellcastingTranslations.get(spellcasting[0]);
 
         let speed = 30;
-        this.applyEffectOperations(effects_by_stat.get("speed"), (base) => {
+        this.applyEffectOperations(parsedCharacter, effectsByStat, "speed", (base) => {
             speed = base;
         }, (changeFunc) => {
             speed = changeFunc(speed);
-        }, Noop, Nulp);
+        }, Noop);
 
         let armor = 10;
-        this.applyEffectOperations(effects_by_stat.get("armor"), (base) => {
+        this.applyEffectOperations(parsedCharacter, effectsByStat, "armor", (base) => {
             armor = base;
         }, (changeFunc) => {
             armor = changeFunc(armor);
-        }, Noop, Nulp)
+        }, Noop)
 
         const hp = {
             value: 20,
@@ -157,24 +171,11 @@ class DiceCloudImporter extends Application {
             max: 20,
         }
 
-        function calculateHP(calculation) {
-            if (calculation === "level * constitutionMod") {
-                let constitution = 10;
-                DiceCloudImporter.applyEffectOperations(effects_by_stat.get("constitution"), (base) => {
-                    constitution = base;
-                }, (changeFunc) => {
-                    constitution = changeFunc(constitution);
-                }, Noop, Nulp);
-                return DiceCloudImporter.getLevel(parsedCharacter) * Math.trunc((constitution - 10) / 2)
-            }
-            return 0;
-        }
-
-        this.applyEffectOperations(effects_by_stat.get("hitPoints"), (base) => {
+        this.applyEffectOperations(parsedCharacter, effectsByStat, "hitPoints", (base) => {
             hp.max = base;
         }, (changeFunc) => {
             hp.max = changeFunc(hp.max);
-        }, Noop, calculateHP);
+        }, Noop);
         hp.value = hp.max + parsedCharacter.character.hitPoints.adjustment
         const tempHP = parsedCharacter.collections.temporaryHitPoints
             .filter((tempHP) => tempHP.charId === charId);
@@ -408,14 +409,14 @@ class DiceCloudImporter extends Application {
         }
 
         const charId = parsedCharacter.character._id
-        const effects_by_stat = new Map();
+        const effectsByStat = new Map();
         parsedCharacter.collections.effects
             .filter((effect) => effect.charId === charId)
             .forEach((effect) => {
-                if (effects_by_stat.has(effect.stat)) {
-                    effects_by_stat.get(effect.stat).push(effect);
+                if (effectsByStat.has(effect.stat)) {
+                    effectsByStat.get(effect.stat).push(effect);
                 } else {
-                    effects_by_stat.set(effect.stat, [effect]);
+                    effectsByStat.set(effect.stat, [effect]);
                 }
             });
 
@@ -429,8 +430,8 @@ class DiceCloudImporter extends Application {
                 img: "icons/svg/mystery-man.png",
             },
             data: {
-                abilities: DiceCloudImporter.parseAbilities(parsedCharacter, effects_by_stat),
-                attributes: DiceCloudImporter.parseAttributes(parsedCharacter, effects_by_stat),
+                abilities: DiceCloudImporter.parseAbilities(parsedCharacter, effectsByStat),
+                attributes: DiceCloudImporter.parseAttributes(parsedCharacter, effectsByStat),
                 currency: DiceCloudImporter.parseCurrency(parsedCharacter),
                 details: DiceCloudImporter.parseDetails(parsedCharacter),
                 traits: DiceCloudImporter.parseTraits(parsedCharacter),
