@@ -354,8 +354,8 @@ class DiceCloudImporter extends Application {
                     _id: entity._id,
                     data: {
                         quantity: item.quantity,
+                        equipped: item.enabled,
                     },
-                    equipped: item.enabled,
                 });
             } else {
                 let item_entity = {
