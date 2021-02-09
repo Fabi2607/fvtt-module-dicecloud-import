@@ -363,7 +363,7 @@ class DiceCloudImporter extends Application {
                     data: {
                         quantity: item.quantity,
                         description: {
-                            value: item.description
+                            value: this.markdownToHTML(item.description)
                         },
                         equipped: item.enabled,
                         weight: item.weight,
