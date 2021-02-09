@@ -274,6 +274,24 @@ class DiceCloudImporter extends Application {
         };
     }
 
+    static async prepareCompendiums(compendiums) {
+        return Promise.all(
+            compendiums.map(compendium => game.packs.get(compendium).getIndex())
+        )
+    }
+
+    static async findInCompendiums(compendiums, name) {
+        for (let compendium of compendiums) {
+            let item = compendium.index.find(value => value.name.toLowerCase() === name.toLowerCase());
+
+            if (item) {
+                return await compendium.getEntity(item._id);
+            }
+        }
+
+        return null;
+    }
+
     static async parseItems(actor, parsedCharacter) {
         let currencyItems = ["Copper piece", "Silver piece", "Electrum piece", "Gold piece", "Platinum piece"];
 
@@ -298,8 +316,10 @@ class DiceCloudImporter extends Application {
         const ignore_container_ids = parsedCharacter.collections.containers.filter(
             v => ignore_containers.includes(v.name)).map(v => v._id);
 
-        const srd_pack = game.packs.get("dnd5e.items");
-        await srd_pack.getIndex();
+        const compendiums = await this.prepareCompendiums([
+            `world.ddb-${game.world.name}-items`,
+            "dnd5e.items"
+        ]);
 
         let filteredItems = parsedCharacter.collections.items.filter(v => !currencyItems.includes(v.name))
 
@@ -314,11 +334,10 @@ class DiceCloudImporter extends Application {
                 itemName = srd_item_name_map.get(itemName);
             }
 
-            let srd_item = srd_pack.index.find(value => value.name.toLowerCase() === itemName.toLowerCase());
+            let existing_entity = await this.findInCompendiums(compendiums, itemName);
 
-            if (srd_item) {
-                let item_entity = await srd_pack.getEntity(srd_item._id);
-                const entity = await actor.createEmbeddedEntity("OwnedItem", item_entity);
+            if (existing_entity) {
+                const entity = await actor.createEmbeddedEntity("OwnedItem", existing_entity);
                 await actor.updateEmbeddedEntity("OwnedItem", {
                     _id: entity._id,
                     data: {
@@ -346,17 +365,39 @@ class DiceCloudImporter extends Application {
         await actor.createEmbeddedEntity("OwnedItem", items);
     }
 
+    static async parseSpells(actor, parsedCharacter) {
+        const compendiums = await this.prepareCompendiums([
+            `world.ddb-${game.world.name}-spells`,
+            "Dynamic-Effects-SRD.DAE SRD Spells",
+            "dnd5e.spells"
+        ]);
+
+        for (let spell of parsedCharacter.collections.spells) {
+            let existing_spell = await this.findInCompendiums(compendiums, spell.name);
+
+            if (existing_spell) {
+                await actor.createEmbeddedEntity("OwnedItem", existing_spell);
+            } else {
+                await actor.createEmbeddedEntity("OwnedItem", {
+                    data: {
+                        level: spell.level,
+                    },
+                    name: spell.name,
+                    type: "spell",
+                });
+            }
+        }
+    }
+
     static async parseLevels(actor, parsedCharacter) {
-        const srd_pack = game.packs.get("dnd5e.classes");
-        await srd_pack.getIndex();
+        const compendiums = await this.prepareCompendiums(["dnd5e.classes"]);
 
         for (let c_class of parsedCharacter.collections.classes) {
-            let srd_item = srd_pack.index.find(value => value.name.toLowerCase() === c_class.name.toLowerCase());
+            let srd_item = await this.findInCompendiums(compendiums, c_class.name);
 
             if (srd_item) {
-                let srd_entity = await srd_pack.getEntity(srd_item._id);
 
-                let entity = await actor.createEmbeddedEntity("OwnedItem", srd_entity);
+                let entity = await actor.createEmbeddedEntity("OwnedItem", srd_item);
                 await actor.updateEmbeddedEntity("OwnedItem", {
                     _id: entity._id,
                     data: {
@@ -465,6 +506,7 @@ class DiceCloudImporter extends Application {
             try {
                 await DiceCloudImporter.parseLevels(thisActor, parsedCharacter);
                 await DiceCloudImporter.parseItems(thisActor, parsedCharacter);
+                await DiceCloudImporter.parseSpells(thisActor, parsedCharacter);
             } catch (e) {
                 console.error(e);
             }
@@ -486,10 +528,11 @@ class DiceCloudImporter extends Application {
 
             try {
                 const deletions = existingActor.data.items.map(i => i._id);
-                existingActor.deleteEmbeddedEntity("OwnedItem", deletions);
 
+                await existingActor.deleteEmbeddedEntity("OwnedItem", deletions);
                 await DiceCloudImporter.parseLevels(existingActor, parsedCharacter);
                 await DiceCloudImporter.parseItems(existingActor, parsedCharacter);
+                await DiceCloudImporter.parseSpells(existingActor, parsedCharacter);
             } catch (e) {
                 console.error(e);
             }
