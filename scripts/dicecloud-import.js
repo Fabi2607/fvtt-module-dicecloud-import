@@ -468,6 +468,30 @@ class DiceCloudImporter extends Application {
         }
     }
 
+    static async parseFeatures(actor, parsedCharacter) {
+        const compendiums = await this.prepareCompendiums([
+            "Dynamic-Effects-SRD.DAE SRD Feats",
+            "dnd5e.classfeatures",
+            "dnd5e.races",
+        ]);
+
+        for (let feature of parsedCharacter.collections.features) {
+            let srd_item = await this.findInCompendiums(compendiums, feature.name);
+
+            if (srd_item) {
+                await actor.createEmbeddedEntity("OwnedItem", srd_item);
+            } else {
+                await actor.createEmbeddedEntity("OwnedItem", {
+                    type: "feat",
+                    name: feature.name,
+                    description: {
+                        value: feature.description,
+                    }
+                });
+            }
+        }
+    }
+
     static parseTraits(parsedCharacter) {
         return {
             size: "med",
