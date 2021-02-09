@@ -286,7 +286,7 @@ class DiceCloudImporter extends Application {
 
     static async findInCompendiums(compendiums, name) {
         for (let compendium of compendiums) {
-            let item = compendium.index.find(value => value.name.toLowerCase() === name.toLowerCase());
+            let item = compendium.index.find(value => value.name.toLowerCase() === name.trim().toLowerCase());
 
             if (item) {
                 return await compendium.getEntity(item._id);
@@ -385,6 +385,9 @@ class DiceCloudImporter extends Application {
                 await actor.createEmbeddedEntity("OwnedItem", {
                     data: {
                         level: spell.level,
+                        description: {
+                            value: spell.description,
+                        }
                     },
                     name: spell.name,
                     type: "spell",
