@@ -275,13 +275,13 @@ class DiceCloudImporter extends Application {
     }
 
     static async prepareCompendiums(compendiums) {
-        let compendiums = compendiums.map(comp => game.packs.get(comp));
+        let prepared_compendiums = compendiums.map(comp => game.packs.get(comp));
 
         await Promise.all(
-            compendiums.map(compendium => compendium.getIndex())
+            prepared_compendiums.map(compendium => compendium.getIndex())
         );
 
-        return compendiums;
+        return prepared_compendiums;
     }
 
     static async findInCompendiums(compendiums, name) {
