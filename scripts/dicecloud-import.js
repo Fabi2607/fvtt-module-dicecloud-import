@@ -511,6 +511,17 @@ class DiceCloudImporter extends Application {
         };
     }
 
+    static async parseEmbeddedEntities(actor, parsedCharacter) {
+        try {
+            await DiceCloudImporter.parseLevels(actor, parsedCharacter);
+            await DiceCloudImporter.parseItems(actor, parsedCharacter);
+            await DiceCloudImporter.parseSpells(actor, parsedCharacter);
+            await DiceCloudImporter.parseFeatures(actor, parsedCharacter);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
     static async parseCharacter(characterJSON, updateBool) {
         // Parse CritterDB JSON data pasted in UI
         // Determine if this is a single monster or a bestiary by checking for creatures array
@@ -578,13 +589,7 @@ class DiceCloudImporter extends Application {
         if (existingActor == null) {
             let thisActor = await Actor.create(tempActor, {'temporary': false, 'displaySheet': false});
 
-            try {
-                await DiceCloudImporter.parseLevels(thisActor, parsedCharacter);
-                await DiceCloudImporter.parseItems(thisActor, parsedCharacter);
-                await DiceCloudImporter.parseSpells(thisActor, parsedCharacter);
-            } catch (e) {
-                console.error(e);
-            }
+            await this.parseEmbeddedEntities(thisActor, parsedCharacter);
 
             // Wrap up
             console.log(`Done importing ${tempActor.name}`);
@@ -601,16 +606,10 @@ class DiceCloudImporter extends Application {
 
             existingActor.update(tempActor);
 
-            try {
-                const deletions = existingActor.data.items.map(i => i._id);
+            const deletions = existingActor.data.items.map(i => i._id);
+            await existingActor.deleteEmbeddedEntity("OwnedItem", deletions);
 
-                await existingActor.deleteEmbeddedEntity("OwnedItem", deletions);
-                await DiceCloudImporter.parseLevels(existingActor, parsedCharacter);
-                await DiceCloudImporter.parseItems(existingActor, parsedCharacter);
-                await DiceCloudImporter.parseSpells(existingActor, parsedCharacter);
-            } catch (e) {
-                console.error(e);
-            }
+            await this.parseEmbeddedEntities(existingActor, parsedCharacter);
 
             console.log(`Updated ${tempActor.name}`);
             ui.notifications.info(`Updated data for ${tempActor.name}`);
