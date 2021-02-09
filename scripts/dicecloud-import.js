@@ -228,9 +228,9 @@ class DiceCloudImporter extends Application {
 
     static parseDetails(parsedCharacter) {
         return {
-            alignment: parsedCharacter.character.alignment,
+            alignment: this.stripMarkdownLinks(parsedCharacter.character.alignment),
             appearance: "",
-            background: this.markdownToHTML(parsedCharacter.character.backstory),
+            background: this.stripMarkdownLinks(parsedCharacter.character.backstory),
             biography: {
                 value: this.markdownToHTML(parsedCharacter.character.description),
             },
@@ -238,10 +238,14 @@ class DiceCloudImporter extends Application {
             flaw: this.markdownToHTML(parsedCharacter.character.flaws),
             ideal: this.markdownToHTML(parsedCharacter.character.ideals),
             level: this.getLevel(parsedCharacter),
-            race: parsedCharacter.character.race,
+            race: this.stripMarkdownLinks(parsedCharacter.character.race),
             trait: this.markdownToHTML(parsedCharacter.character.personality),
             source: `DiceCloud`,
         };
+    }
+
+    static stripMarkdownLinks(text) {
+        return text.replaceAll(/\[(.+?)\]\(https?:\/\/.+?\)/g, "$1").replace(/^🔗\s*/, "");
     }
 
     static markdownToHTML(text) {
