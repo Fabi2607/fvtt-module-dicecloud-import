@@ -198,7 +198,6 @@ class DiceCloudImporter extends Application {
                 value: null,
                 max: null
             },
-            hd: 3,
             hp,
             init: {
                 value: 0,
