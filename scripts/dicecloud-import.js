@@ -328,9 +328,9 @@ class DiceCloudImporter extends Application {
             v => ignore_containers.includes(v.name)).map(v => v._id);
 
         const compendiums = await this.prepareCompendiums([
-            `world.ddb-${game.world.name}-items`,
             "Dynamic-Effects-SRD.DAE SRD Items",
-            "dnd5e.items"
+            "dnd5e.items",
+            `world.ddb-${game.world.name}-items`
         ]);
 
         let filteredItems = parsedCharacter.collections.items.filter(v => !currencyItems.includes(v.name))
@@ -379,9 +379,9 @@ class DiceCloudImporter extends Application {
 
     static async parseSpells(actor, parsedCharacter) {
         const compendiums = await this.prepareCompendiums([
-            `world.ddb-${game.world.name}-spells`,
             "Dynamic-Effects-SRD.DAE SRD Spells",
-            "dnd5e.spells"
+            "dnd5e.spells",
+            `world.ddb-${game.world.name}-spells`
         ]);
 
         const spellSchoolTranslation = new Map([
