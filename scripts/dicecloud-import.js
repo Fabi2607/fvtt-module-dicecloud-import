@@ -396,8 +396,9 @@ class DiceCloudImporter extends Application {
         for (let spell of parsedCharacter.collections.spells) {
             let existing_spell = await this.findInCompendiums(compendiums, spell.name);
 
+            let entity = {}
             if (existing_spell) {
-                await actor.createEmbeddedEntity("OwnedItem", existing_spell);
+                entity = await actor.createEmbeddedEntity("OwnedItem", existing_spell);
             } else {
                 let range = {};
                 if (spell.range.toLowerCase() === "touch") {
@@ -413,7 +414,10 @@ class DiceCloudImporter extends Application {
                     };
                 }
 
-                await actor.createEmbeddedEntity("OwnedItem", {
+                let school = spellSchoolTranslation.has(spell.school) ?
+                    spellSchoolTranslation.get(spell.school) : spell.school;
+
+                entity = await actor.createEmbeddedEntity("OwnedItem", {
                     data: {
                         level: spell.level,
                         description: {
@@ -425,6 +429,7 @@ class DiceCloudImporter extends Application {
                             concentration: spell.components.concentration,
                             ritual: spell.ritual,
                         },
+                        school: school,
                         duration: duration,
                         range: range,
                         preparation: {
@@ -438,6 +443,14 @@ class DiceCloudImporter extends Application {
                     type: "spell",
                 });
             }
+            await actor.updateEmbeddedEntity("OwnedItem", {
+                _id: entity._id,
+                data: {
+                    preparation: {
+                        prepared: spell.prepared === "prepared",
+                    },
+                }
+            });
         }
     }
 
