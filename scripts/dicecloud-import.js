@@ -586,10 +586,9 @@ class DiceCloudImporter extends Application {
                 currency: DiceCloudImporter.parseCurrency(parsedCharacter),
                 details: DiceCloudImporter.parseDetails(parsedCharacter),
                 traits: DiceCloudImporter.parseTraits(parsedCharacter),
-                items: [],
+                items: []
             },
             items: [],
-            effects: {},
         };
 
         // Create owned "Items" for spells, actions, and abilities
