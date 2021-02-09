@@ -232,7 +232,7 @@ class DiceCloudImporter extends Application {
             appearance: "",
             background: parsedCharacter.character.backstory,
             biography: {
-                value: parsedCharacter.character.description,
+                value: parsedCharacter.character.description.replaceAll(/\n\s*\n/, "<br><br>"),
             },
             bond: parsedCharacter.character.bonds,
             flaw: parsedCharacter.character.flaws,
