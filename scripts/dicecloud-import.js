@@ -376,18 +376,55 @@ class DiceCloudImporter extends Application {
             "dnd5e.spells"
         ]);
 
+        const spellSchoolTranslation = new Map([
+            ["Abjuration", "abj"],
+            ["Illusion", "ill"],
+            ["Transmutation", "trs"],
+            ["Enchantment", "enc"],
+            ["Divination", "div"],
+            ["Evocation", "evo"],
+        ]);
+
         for (let spell of parsedCharacter.collections.spells) {
             let existing_spell = await this.findInCompendiums(compendiums, spell.name);
 
             if (existing_spell) {
                 await actor.createEmbeddedEntity("OwnedItem", existing_spell);
             } else {
+                let range = {};
+                if (spell.range.toLowerCase() === "touch") {
+                    range = {
+                        units: "touch"
+                    };
+                }
+
+                let duration = {};
+                if (spell.duration === "Instantaneous") {
+                    duration = {
+                        units: "inst",
+                    };
+                }
+
                 await actor.createEmbeddedEntity("OwnedItem", {
                     data: {
                         level: spell.level,
                         description: {
                             value: spell.description,
-                        }
+                        },
+                        components: {
+                            vocal: spell.components.verbal,
+                            somatic: spell.components.somatic,
+                            concentration: spell.components.concentration,
+                            ritual: spell.ritual,
+                        },
+                        duration: duration,
+                        range: range,
+                        preparation: {
+                            prepared: spell.prepared === "prepared",
+                        },
+                        materials: {
+                            value: spell.components.material,
+                        },
                     },
                     name: spell.name,
                     type: "spell",
