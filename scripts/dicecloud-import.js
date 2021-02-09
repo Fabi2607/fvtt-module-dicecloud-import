@@ -282,7 +282,6 @@ class DiceCloudImporter extends Application {
         );
 
         return compendiums;
-        )
     }
 
     static async findInCompendiums(compendiums, name) {
