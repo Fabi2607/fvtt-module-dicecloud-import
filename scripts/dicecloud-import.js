@@ -328,6 +328,7 @@ class DiceCloudImporter extends Application {
 
         const compendiums = await this.prepareCompendiums([
             `world.ddb-${game.world.name}-items`,
+            "Dynamic-Effects-SRD.DAE SRD Items",
             "dnd5e.items"
         ]);
 
