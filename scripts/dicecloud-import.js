@@ -475,7 +475,18 @@ class DiceCloudImporter extends Application {
             "dnd5e.races",
         ]);
 
+        const ignore_class_features = [
+            "Base Ability Scores",
+            "Jack of All Trades",
+            "Song of Rest",
+            "Wild Shape",
+        ]
+
         for (let feature of parsedCharacter.collections.features) {
+            if (ignore_class_features.includes(feature.name)) {
+                continue;
+            }
+
             let srd_item = await this.findInCompendiums(compendiums, feature.name);
 
             if (srd_item) {
@@ -484,8 +495,10 @@ class DiceCloudImporter extends Application {
                 await actor.createEmbeddedEntity("OwnedItem", {
                     type: "feat",
                     name: feature.name,
-                    description: {
-                        value: feature.description,
+                    data: {
+                        description: {
+                            value: feature.description,
+                        }
                     }
                 });
             }
