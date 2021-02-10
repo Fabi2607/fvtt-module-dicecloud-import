@@ -558,7 +558,7 @@ class DiceCloudImporter extends Application {
             const known_proficiency = known_proficiencies.get(value.toLowerCase());
 
             result.values.push(known_proficiency.key);
-            result.selected[known_proficiency.key] = known_proficiencies[value].name;
+            result.selected[known_proficiency.key] = known_proficiency.name;
         }
 
         return result;
