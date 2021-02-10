@@ -382,6 +382,7 @@ class DiceCloudImporter extends Application {
 
     static async parseSpells(actor, parsedCharacter) {
         const compendiums = await this.prepareCompendiums([
+            "Dynamic-Effects-SRD.DAE SRD Midi-collection",
             "Dynamic-Effects-SRD.DAE SRD Spells",
             "dnd5e.spells",
             `world.ddb-${game.world.name}-spells`
