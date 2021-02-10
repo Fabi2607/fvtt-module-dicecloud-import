@@ -248,6 +248,10 @@ class DiceCloudImporter extends Application {
     }
 
     static markdownToHTML(text) {
+        if (!text) {
+            return "";
+        }
+
         return text
             .replaceAll(/\n\s*\n/g, "<br><br>")
             .replaceAll(/\[(.+?)\]\((https?:\/\/.+?)\)/g, "<a href=\"$2\">$1</a>");
