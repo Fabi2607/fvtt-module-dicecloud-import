@@ -532,6 +532,16 @@ class DiceCloudImporter extends Application {
         }
     }
 
+    static parseProficiencies(parsedCharacter, type) {
+        const proficiencies = parsedCharacter.collections.proficiencies.filter(
+            prof => prof.type === type && prof.enabled
+        )
+
+        return {
+            value: proficiencies.map(prof => prof.name)
+        }
+    }
+
     static parseTraits(parsedCharacter) {
         return {
             size: "med",
@@ -548,6 +558,10 @@ class DiceCloudImporter extends Application {
                 value: []
             },
             senses: "",
+            languages: this.parseProficiencies(parsedCharacter, "language"),
+            toolProf: this.parseProficiencies(parsedCharacter, "tool"),
+            armorProf: this.parseProficiencies(parsedCharacter, "armor"),
+            weaponProf: this.parseProficiencies(parsedCharacter, "weapon"),
         };
     }
 
