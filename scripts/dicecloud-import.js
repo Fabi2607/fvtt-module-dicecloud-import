@@ -551,13 +551,13 @@ class DiceCloudImporter extends Application {
                 custom1: unknown_values.join(", "),
             },
             custom: unknown_values.join(", "),
-            values: []
+            value: []
         }
 
         for (let value of known_values) {
             const known_proficiency = known_proficiencies.get(value.toLowerCase());
 
-            result.values.push(known_proficiency.key);
+            result.value.push(known_proficiency.key);
             result.selected[known_proficiency.key] = known_proficiency.name;
         }
 
