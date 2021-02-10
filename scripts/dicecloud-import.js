@@ -548,7 +548,7 @@ class DiceCloudImporter extends Application {
         const values = proficiencies.flatMap(prof => prof.name.split(", "));
 
         const known_values = values.filter(prof => known_proficiencies.has(prof.toLowerCase()));
-        const unknown_values = values.filter(prof => !known_proficiencies.has(prof));
+        const unknown_values = values.filter(prof => !known_proficiencies.has(prof.toLowerCase()));
 
         const result = {
             selected: {
