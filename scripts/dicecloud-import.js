@@ -436,7 +436,8 @@ class DiceCloudImporter extends Application {
                         duration: duration,
                         range: range,
                         preparation: {
-                            prepared: spell.prepared === "prepared",
+                            mode: spell.level > 0 ? "prepared": "always",
+                            prepared: spell.prepared === "prepared" || spell.level === 0,
                         },
                         materials: {
                             value: spell.components.material,
@@ -446,11 +447,13 @@ class DiceCloudImporter extends Application {
                     type: "spell",
                 });
             }
+
             await actor.updateEmbeddedEntity("OwnedItem", {
                 _id: entity._id,
                 data: {
                     preparation: {
-                        prepared: spell.prepared === "prepared",
+                        mode: spell.level > 0 ? "prepared": "always",
+                        prepared: spell.prepared === "prepared" || spell.level === 0,
                     },
                 }
             });
