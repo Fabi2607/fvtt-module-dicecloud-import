@@ -536,22 +536,87 @@ class DiceCloudImporter extends Application {
         }
     }
 
-    static parseProficiencies(parsedCharacter, type) {
+    static parseProficiencies(parsedCharacter, type, known_proficiencies) {
         const proficiencies = parsedCharacter.collections.proficiencies.filter(
             prof => prof.type === type && prof.enabled
         )
 
-        const values = proficiencies.flatMap(prof => prof.name.split(", ")).join(", ");
+        const values = proficiencies.flatMap(prof => prof.name.split(", "));
 
-        return {
+        const known_values = values.filter(prof => known_proficiencies.has(prof.toLowerCase()));
+        const unknown_values = values.filter(prof => !known_proficiencies.has(prof));
+
+        const result = {
             selected: {
-                custom1: values
+                custom1: unknown_values.join(", "),
             },
-            custom: values,
+            custom: unknown_values.join(", "),
+            values: []
         }
+
+        for (let value of known_values) {
+            const known_proficiency = known_proficiencies.get(value.toLowerCase());
+
+            result.values.push(known_proficiency.key);
+            result.selected[known_proficiency.key] = known_proficiencies[value].name;
+        }
+
+        return result;
     }
 
     static parseTraits(parsedCharacter) {
+        const known_languages = {
+            "aarakocra": {key: "aarakocra", name: "Aarakocra"},
+            "aquan": {key: "aquan", name: "Aquan"},
+            "auran": {key: "auran", name: "Auran"},
+            "thieves' cant": {key: "cant", name: "Thieves' Cant"},
+            "celestial": {key: "celestial", name: "Celestial"},
+            "common": {key: "common", name: "Common"},
+            "deep speech": {key: "deep", name: "Deep Speech"},
+            "draconic": {key: "draconic", name: "Draconic"},
+            "druidic": {key: "druidic", name: "Druidic"},
+            "dwarvish": {key: "dwarvish", name: "Dwarvish"},
+            "elvish": {key: "elvish", name: "Elvish"},
+            "giant": {key: "giant", name: "Giant"},
+            "gith": {key: "gith", name: "Gith"},
+            "gnoll": {key: "gnoll", name: "Gnoll"},
+            "gnomish": {key: "gnomish", name: "Gnomish"},
+            "goblin": {key: "goblin", name: "Goblin"},
+            "halfling": {key: "halfing", name: "Halfling"},
+            "ignan": {key: "ignan", name: "Ignan"},
+            "infernal": {key: "infernal", name: "Infernal"},
+            "orc": {key: "orc", name: "Orc"},
+            "primordial": {key: "primordial", name: "Primordial"},
+            "sylvan": {key: "sylvan", name: "Sylvan"},
+            "terran": {key: "terran", name: "Terran"},
+            "undercommon": {key: "undercommon", name: "Undercommon"},
+        };
+
+        const known_armor = {
+            "heavy armor": {key: "hvy", name: "Heavy Armor"},
+            "medium armor": {key: "med", name: "Medium Armor"},
+            "light armor": {key: "lgt", name: "Light Armor"},
+            "shields": {key: "shl", name: "Shields"},
+        };
+
+        const known_weapons = {
+            "simple weapons": {key: "sim", name: "Simple Weapons"},
+            "martial weapons": {key: "mar", name: "Martial Weapons"},
+        };
+
+        const known_tools = {
+            "artisan's tools": {key: "art", name: "Artisan's Tools"},
+            "disguise kit": {key: "disg", name: "Disguise Kit"},
+            "forgery kit": {key: "forg", name: "Forgery Kit"},
+            "gaming set": {key: "game", name: "Gaming Set"},
+            "herbalism kit": {key: "herb", name: "Herbalism Kit"},
+            "musical instrument": {key: "music", name: "Musical Instrument"},
+            "navigator's tools": {key: "navg", name: "Navigator's Tools"},
+            "poisoner's kit": {key: "pois", name: "Poisoner's Kit"},
+            "thieves' tools": {key: "thief", name: "Thieves' Tools"},
+            "vehicle": {key: "vehicle", name: "Vehicle (Land or Water)"},
+        };
+
         return {
             size: "med",
             di: {
@@ -567,10 +632,10 @@ class DiceCloudImporter extends Application {
                 value: []
             },
             senses: "",
-            languages: this.parseProficiencies(parsedCharacter, "language"),
-            toolProf: this.parseProficiencies(parsedCharacter, "tool"),
-            armorProf: this.parseProficiencies(parsedCharacter, "armor"),
-            weaponProf: this.parseProficiencies(parsedCharacter, "weapon"),
+            languages: this.parseProficiencies(parsedCharacter, "language", known_languages),
+            toolProf: this.parseProficiencies(parsedCharacter, "tool", known_tools),
+            armorProf: this.parseProficiencies(parsedCharacter, "armor", known_armor),
+            weaponProf: this.parseProficiencies(parsedCharacter, "weapon", known_weapons),
         };
     }
 
@@ -661,7 +726,6 @@ class DiceCloudImporter extends Application {
             // Wrap up
             console.log(`Done importing ${tempActor.name}`);
             ui.notifications.info(`Done importing ${tempActor.name}`);
-
         } else if (updateBool) {
             // Need to pass _id to updateEntity
             tempActor._id = existingActor._id;
