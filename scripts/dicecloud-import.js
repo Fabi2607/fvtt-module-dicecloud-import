@@ -537,8 +537,17 @@ class DiceCloudImporter extends Application {
             prof => prof.type === type && prof.enabled
         )
 
+        const values = proficiencies.flatMap(prof => prof.name.split(", "))
+
+        const selected = {};
+
+        for (let value of values) {
+            selected[value] = true;
+        }
+
         return {
-            value: proficiencies.map(prof => prof.name)
+            selected: selected,
+            value: values,
         }
     }
 
