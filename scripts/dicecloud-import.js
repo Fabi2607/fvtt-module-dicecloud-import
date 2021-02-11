@@ -139,11 +139,10 @@ class DiceCloudImporter extends Application {
     static parseAttributes(parsedCharacter, effectsByStat) {
         const charId = parsedCharacter.character._id;
 
-        const spellcastingTranslations = new Map([
-            ["intelligenceMod", "int"],
-            ["wisdomMod", "wis"],
-            ["charismaMod", "cha"],
-        ]);
+        const spellcastingTranslations = new Map(
+            ["intelligence", "wisdom", "charisma"]
+                .map((ability) => [ability + "Mod", this.abilityTranslations.get(ability)])
+        );
         const spellList = parsedCharacter.collections.spellLists.filter((spellList) => spellList.charId === charId)[0];
         let spellcasting = Array.from(spellcastingTranslations.keys());
         spellcasting = spellcasting.filter((value) => spellList.attackBonus.includes(value));
