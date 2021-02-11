@@ -437,7 +437,7 @@ class DiceCloudImporter extends Application {
                         duration: duration,
                         range: range,
                         preparation: {
-                            mode: spell.level > 0 ? "prepared": "always",
+                            mode: spell.level > 0 ? "prepared" : "always",
                             prepared: spell.prepared === "prepared" || spell.level === 0,
                         },
                         materials: {
@@ -453,7 +453,7 @@ class DiceCloudImporter extends Application {
                 _id: entity._id,
                 data: {
                     preparation: {
-                        mode: spell.level > 0 ? "prepared": "always",
+                        mode: spell.level > 0 ? "prepared" : "always",
                         prepared: spell.prepared === "prepared" || spell.level === 0,
                     },
                 }
@@ -756,6 +756,7 @@ class DiceCloudImporter extends Application {
     }
 
     static parseSkills(parsedCharacter) {
+        const charId = parsedCharacter.character._id;
         const skillTranslations = new Map([
             ["acrobatics", "acr"],
             ["animalHandling", "ani"],
@@ -777,7 +778,9 @@ class DiceCloudImporter extends Application {
             ["survival", "sur"],
         ]);
         const skills = {};
-        const proficientSkills = this.parseProficiencies(parsedCharacter, "skill", skillTranslations)
+        const proficientSkills = new Map(parsedCharacter.collections.proficiencies
+            .filter((prof) => prof.enabled && prof.charId === charId && prof.type === "skill")
+            .map((prof) => [prof.name, prof.value]));
         Array.from(skillTranslations.keys()).forEach((skill) => {
             const skillObj = parsedCharacter.character[skill];
             if (skillObj == null) {
@@ -790,11 +793,12 @@ class DiceCloudImporter extends Application {
                 console.warn(`skill ability for "${skill}" not found on character`);
                 return;
             }
-            const isProficient = proficientSkills.value.includes(skill);
+
             skills[skillTranslations.get(skill)] = {
-                value: isProficient ? 1 : 0,
+                value: proficientSkills.has(skill) ? proficientSkills.get(skill) : 0,
                 ability: this.abilityTranslations.get(skillAbility),
             };
         });
+        return skills;
     }
 }
