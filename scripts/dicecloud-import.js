@@ -47,15 +47,26 @@ class DiceCloudImporter extends Application {
         this.close();
     }
 
+    static abilityLevel(parsedCharacter, effectsByStat, ability) {
+        let abilityLevel = 10;
+        DiceCloudImporter.applyEffectOperations(parsedCharacter, effectsByStat, ability, (base) => {
+            abilityLevel = base;
+        }, (changeFunc) => {
+            abilityLevel = changeFunc(abilityLevel);
+        }, Noop);
+        return abilityLevel;
+    }
+
+    static abilityModifier(parsedCharacter, effectsByStat, ability) {
+        return Math.trunc((this.abilityLevel(parsedCharacter, effectsByStat, ability) - 10) / 2);
+    }
+
     static arbitaryCalculation(parsedCharacter, effectsByStat, calculation) {
         if (calculation === "level * constitutionMod") {
-            let constitution = 10;
-            DiceCloudImporter.applyEffectOperations(parsedCharacter, effectsByStat, "constitution", (base) => {
-                constitution = base;
-            }, (changeFunc) => {
-                constitution = changeFunc(constitution);
-            }, Noop);
-            return DiceCloudImporter.getLevel(parsedCharacter) * Math.trunc((constitution - 10) / 2)
+            const constitutionMod = this.abilityModifier(parsedCharacter, effectsByStat, "constitution");
+            return DiceCloudImporter.getLevel(parsedCharacter) * constitutionMod;
+        } else if (calculation === "dexterityArmor") {
+            return 10 + this.abilityModifier(parsedCharacter, effectsByStat, "dexterity");
         } else {
             console.warn(`Could not calculate ${calculation}`)
             return 0;
