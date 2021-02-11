@@ -116,34 +116,18 @@ class DiceCloudImporter extends Application {
     }
 
     static parseAbilities(parsedCharacter, effectsByStat) {
+        const charId = parsedCharacter.character._id;
         const abilities = {};
-        Array.from(this.abilityTranslations.values()).forEach((shortStat) => {
-            abilities[shortStat] = {
-                proficient: 0,
-                value: 10,
-            };
-        });
+        const proficientAbilities = new Map(parsedCharacter.collections.proficiencies
+            .filter((prof) => prof.enabled && prof.charId === charId && prof.type === "save")
+            .map((prof) => [prof.name.replace(/Save$/, ""), prof.value]));
         Array.from(this.abilityTranslations.keys()).forEach((stat) => {
             const shortStat = this.abilityTranslations.get(stat);
-            this.applyEffectOperations(parsedCharacter, effectsByStat, stat, (base) => {
-                abilities[shortStat].value = base;
-            }, (changeFunc) => {
-                abilities[shortStat].value = changeFunc(abilities[shortStat].value);
-            }, Noop);
+            abilities[shortStat] = {
+                proficient: proficientAbilities.has(stat) ? proficientAbilities.get(stat) : 0,
+                value: this.abilityLevel(parsedCharacter, effectsByStat, stat),
+            };
         });
-
-        const charId = parsedCharacter.character._id;
-        parsedCharacter.collections.proficiencies
-            .filter((prof) => prof.enabled && prof.charId === charId && prof.type === "save")
-            .forEach((prof) => {
-                const stat = prof.name.replace(/Save$/, "");
-                if (this.abilityTranslations.has(stat)) {
-                    abilities[this.abilityTranslations.get(stat)].proficient = prof.value;
-                } else {
-                    throw new Error(`could not apply proficiency ${JSON.stringify(prof)}`)
-                }
-            });
-
         return abilities;
     }
 
