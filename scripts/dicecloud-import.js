@@ -15,6 +15,15 @@ const Noop = () => undefined;
 
 // Main module class
 class DiceCloudImporter extends Application {
+    static abilityTranslations = new Map([
+        ["strength", "str"],
+        ["dexterity", "dex"],
+        ["constitution", "con"],
+        ["intelligence", "int"],
+        ["wisdom", "wis"],
+        ["charisma", "cha"],
+    ]);
+
     static get defaultOptions() {
         const options = super.defaultOptions;
         options.id = "dicecloudimporter";
@@ -96,23 +105,15 @@ class DiceCloudImporter extends Application {
     }
 
     static parseAbilities(parsedCharacter, effectsByStat) {
-        const translations = new Map([
-            ["strength", "str"],
-            ["dexterity", "dex"],
-            ["constitution", "con"],
-            ["intelligence", "int"],
-            ["wisdom", "wis"],
-            ["charisma", "cha"],
-        ]);
         const abilities = {};
-        Array.from(translations.values()).forEach((shortStat) => {
+        Array.from(this.abilityTranslations.values()).forEach((shortStat) => {
             abilities[shortStat] = {
                 proficient: 0,
                 value: 10,
             };
         });
-        Array.from(translations.keys()).forEach((stat) => {
-            const shortStat = translations.get(stat);
+        Array.from(this.abilityTranslations.keys()).forEach((stat) => {
+            const shortStat = this.abilityTranslations.get(stat);
             this.applyEffectOperations(parsedCharacter, effectsByStat, stat, (base) => {
                 abilities[shortStat].value = base;
             }, (changeFunc) => {
@@ -125,8 +126,8 @@ class DiceCloudImporter extends Application {
             .filter((prof) => prof.enabled && prof.charId === charId && prof.type === "save")
             .forEach((prof) => {
                 const stat = prof.name.replace(/Save$/, "");
-                if (translations.has(stat)) {
-                    abilities[translations.get(stat)].proficient = prof.value;
+                if (this.abilityTranslations.has(stat)) {
+                    abilities[this.abilityTranslations.get(stat)].proficient = prof.value;
                 } else {
                     throw new Error(`could not apply proficiency ${JSON.stringify(prof)}`)
                 }
@@ -594,7 +595,7 @@ class DiceCloudImporter extends Application {
             ["sylvan", {key: "sylvan", name: "Sylvan"}],
             ["terran", {key: "terran", name: "Terran"}],
             ["undercommon", {key: "undercommon", name: "Undercommon"}],
-    ]);
+        ]);
 
         const known_armor = new Map([
             ["heavy armor", {key: "hvy", name: "Heavy Armor"}],
@@ -708,7 +709,8 @@ class DiceCloudImporter extends Application {
                 currency: DiceCloudImporter.parseCurrency(parsedCharacter),
                 details: DiceCloudImporter.parseDetails(parsedCharacter),
                 traits: DiceCloudImporter.parseTraits(parsedCharacter),
-                items: []
+                skills: DiceCloudImporter.parseSkills(parsedCharacter),
+                items: [],
             },
             items: [],
         };
@@ -752,5 +754,48 @@ class DiceCloudImporter extends Application {
             console.log(`${tempActor.name} already exists. Skipping`);
             ui.notifications.error(`${tempActor.name} already exists. Skipping`);
         }
+    }
+
+    static parseSkills(parsedCharacter) {
+        const skillTranslations = new Map([
+            ["acrobatics", "acr"],
+            ["animalHandling", "ani"],
+            ["arcana", "arc"],
+            ["athletics", "ath"],
+            ["deception", "dec"],
+            ["history", "his"],
+            ["insight", "ins"],
+            ["intimidation", "itm"],
+            ["investigation", "inv"],
+            ["medicine", "med"],
+            ["nature", "nat"],
+            ["perception", "prc"],
+            ["performance", "prf"],
+            ["persuasion", "per"],
+            ["religion", "rel"],
+            ["sleightOfHand", "slt"],
+            ["stealth", "ste"],
+            ["survival", "sur"],
+        ]);
+        const skills = {};
+        const proficientSkills = this.parseProficiencies(parsedCharacter, "skill", skillTranslations)
+        Array.from(skillTranslations.keys()).forEach((skill) => {
+            const skillObj = parsedCharacter.character[skill];
+            if (skillObj == null) {
+                console.warn(`skill "${skill}" not found on character`);
+                return;
+            }
+            // not sure if the skill ability really has to be set, but it is defined on both ends
+            const skillAbility = skillObj.ability;
+            if (skillAbility == null) {
+                console.warn(`skill ability for "${skill}" not found on character`);
+                return;
+            }
+            const isProficient = proficientSkills.value.includes(skill);
+            skills[skillTranslations.get(skill)] = {
+                value: isProficient ? 1 : 0,
+                ability: this.abilityTranslations.get(skillAbility),
+            };
+        });
     }
 }
