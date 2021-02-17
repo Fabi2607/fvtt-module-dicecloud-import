@@ -703,8 +703,7 @@ class DiceCloudImporter extends Application {
                 items: [],
                 effects: [],
             },
-            items: {},
-            effects: {},
+            items: [],
         };
 
         // Create owned "Items" for spells, actions, and abilities
