@@ -642,6 +642,9 @@ class DiceCloudImporter extends Application {
         try {
             await DiceCloudImporter.parseLevels(actor, parsedCharacter);
             await DiceCloudImporter.parseItems(actor, parsedCharacter);
+            if (DAE) {
+                await DAE.migrateActorItems(actor);
+            }
             await DiceCloudImporter.parseSpells(actor, parsedCharacter);
             await DiceCloudImporter.parseFeatures(actor, parsedCharacter);
         } catch (e) {
