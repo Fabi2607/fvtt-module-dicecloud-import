@@ -640,11 +640,11 @@ class DiceCloudImporter extends Application {
 
     static async parseEmbeddedEntities(actor, parsedCharacter) {
         try {
-            await DiceCloudImporter.parseLevels(actor, parsedCharacter);
             await DiceCloudImporter.parseItems(actor, parsedCharacter);
             if (DAE) {
                 await DAE.migrateActorItems(actor);
             }
+            await DiceCloudImporter.parseLevels(actor, parsedCharacter);
             await DiceCloudImporter.parseSpells(actor, parsedCharacter);
             await DiceCloudImporter.parseFeatures(actor, parsedCharacter);
         } catch (e) {
