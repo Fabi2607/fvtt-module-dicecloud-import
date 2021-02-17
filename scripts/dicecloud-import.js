@@ -644,10 +644,6 @@ class DiceCloudImporter extends Application {
             await DiceCloudImporter.parseItems(actor, parsedCharacter);
             await DiceCloudImporter.parseSpells(actor, parsedCharacter);
             await DiceCloudImporter.parseFeatures(actor, parsedCharacter);
-
-            if (DAE) {
-                await DAE.migrateActorItems(actor);
-            }
         } catch (e) {
             console.error(e);
         }
@@ -705,8 +701,10 @@ class DiceCloudImporter extends Application {
                 traits: DiceCloudImporter.parseTraits(parsedCharacter),
                 skills: DiceCloudImporter.parseSkills(parsedCharacter),
                 items: [],
+                effects: [],
             },
-            items: [],
+            items: {},
+            effects: {},
         };
 
         // Create owned "Items" for spells, actions, and abilities
